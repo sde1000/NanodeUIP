@@ -24,3 +24,15 @@ PORTB = -   -   D13 D12 D11 D10 D9  D8
 
 Nanode has UNI/O SCIO on DIG7
 
+
+To use the library:
+
+#include <NanodeMAC.h>
+
+static uint8_t mymac[6] = { 0,0,0,0,0,0 };
+NanodeMAC mac( mymac );
+
+Then wherever mymac is used, the value will be the one from the chip.
+
+
+
