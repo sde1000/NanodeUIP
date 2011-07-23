@@ -262,11 +262,13 @@ void enc28j60InitWithCs( uint8_t* macaddr, uint8_t csPin )
         //
 	// do bank 2 stuff
 	// enable MAC receive
-	enc28j60Write(MACON1, MACON1_MARXEN|MACON1_TXPAUS|MACON1_RXPAUS);
+	//enc28j60Write(MACON1, MACON1_MARXEN|MACON1_TXPAUS|MACON1_RXPAUS);
+	enc28j60Write(MACON1, MACON1_MARXEN|MACON1_RXPAUS); // TXPAUS not wanted in half-duplex operation
 	// bring MAC out of reset
 	enc28j60Write(MACON2, 0x00);
 	// enable automatic padding to 60bytes and CRC operations
 	enc28j60WriteOp(ENC28J60_BIT_FIELD_SET, MACON3, MACON3_PADCFG0|MACON3_TXCRCEN|MACON3_FRMLNEN);  //|MACON3_FULDPX);
+	enc28j60WriteOp(ENC28J60_BIT_FIELD_CLR, MACON3, MACON3_FULDPX);
 	// set inter-frame gap (non-back-to-back)
 	enc28j60WriteWord(MAIPGL, 0x0C12);
 	// set inter-frame gap (back-to-back)
@@ -285,6 +287,8 @@ void enc28j60InitWithCs( uint8_t* macaddr, uint8_t csPin )
         enc28j60Write(MAADR0, macaddr[5]);
 	// no loopback of transmitted frames
 	enc28j60PhyWrite(PHCON2, PHCON2_HDLDIS);
+	// half-duplex operation
+	enc28j60PhyWrite(PHCON1, 0);
 	// switch to bank 0
 	enc28j60SetBank(ECON1);
 	// enable interrutps
@@ -310,7 +314,7 @@ uint8_t enc28j60getrev(void)
 uint8_t enc28j60linkup(void)
 {
         // bit 10 (= bit 3 in upper reg)
-	return(enc28j60PhyReadH(PHSTAT2) && 4);
+	return(enc28j60PhyReadH(PHSTAT2) & 4);
 }
 
 void enc28j60PacketSend(uint16_t len, uint8_t* packet)
