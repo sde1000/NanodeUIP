@@ -58,20 +58,25 @@
 #define BIT1 SCIO_LOW;WAIT_HALF_BIT;SCIO_HIGH;WAIT_HALF_BIT;
 
 
-void NanodeMAC::unio_standby() {
+static void unio_standby() {
   
   SCIO_OUTPUT;
   SCIO_HIGH;
   delayMicroseconds(UNIO_TSTBY_US);
 }
 
-void NanodeMAC::unio_start_header() {
-  SCIO_LOW;
-  delayMicroseconds(UNIO_THDR_US);
-  unio_sendByte(B01010101);
+static inline bool unio_readBit()
+{
+  SCIO_INPUT;
+  WAIT_QUARTER_BIT;
+  bool value1 = SCIO_READ;
+  WAIT_HALF_BIT;
+  bool value2 = SCIO_READ;
+  WAIT_QUARTER_BIT;
+  return (value2 && !value1);
 }
 
-void NanodeMAC::unio_sendByte(byte data) {
+static void unio_sendByte(byte data) {
   
   SCIO_OUTPUT;
   for (int i=0; i<8; i++) {
@@ -88,7 +93,13 @@ void NanodeMAC::unio_sendByte(byte data) {
   bool sak = unio_readBit();
 }
 
-byte NanodeMAC::unio_readBytes(byte *addr, unsigned int length) {
+static void unio_start_header() {
+  SCIO_LOW;
+  delayMicroseconds(UNIO_THDR_US);
+  unio_sendByte(B01010101);
+}
+
+static byte unio_readBytes(byte *addr, unsigned int length) {
   for (int i=0; i<length; i++) {
     
     byte data = 0;
@@ -106,18 +117,7 @@ byte NanodeMAC::unio_readBytes(byte *addr, unsigned int length) {
   }
 }
 
-inline bool NanodeMAC::unio_readBit()
-{
-  SCIO_INPUT;
-  WAIT_QUARTER_BIT;
-  bool value1 = SCIO_READ;
-  WAIT_HALF_BIT;
-  bool value2 = SCIO_READ;
-  WAIT_QUARTER_BIT;
-  return (value2 && !value1);
-}
-
-NanodeMAC::NanodeMAC( byte *mac_address ) {
+void NanodeMAC( struct uip_eth_addr *mac_address ) {
 
   // standby
   unio_standby();
@@ -135,7 +135,7 @@ NanodeMAC::NanodeMAC( byte *mac_address ) {
   unio_sendByte(0xFA);
   
   // read 6 bytes into array
-  unio_readBytes(mac_address, 6);
+  unio_readBytes((byte *)mac_address, 6);
   
   // back to standby
   unio_standby();

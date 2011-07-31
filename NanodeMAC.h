@@ -9,16 +9,11 @@
 #include <inttypes.h>
 #include <WProgram.h>
 
-class NanodeMAC {
-  private:
-	void unio_standby();
-	void unio_start_header();
-	void unio_sendByte(byte data);
-	byte unio_readBytes(byte *addr, unsigned int length);
-	inline bool unio_readBit();
-  public:
-	NanodeMAC( byte *macaddr );
-};
+extern "C" {
+#include "uip.h"
+}
+
+void NanodeMAC(struct uip_eth_addr *mac);
 
 #endif //_NANODEMAC_LIB_H
 
