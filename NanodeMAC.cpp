@@ -27,7 +27,7 @@
 
 #include "NanodeMAC.h"
 #include <inttypes.h>
-#include <wprogram.h>
+#include <WProgram.h>
 
 #define D7_ON  (1<<7)
 #define D7_OFF (~D7_ON)
@@ -141,5 +141,3 @@ NanodeMAC::NanodeMAC( byte *mac_address ) {
   unio_standby();
   
 }
-  
- 

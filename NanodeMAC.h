@@ -7,7 +7,7 @@
 #define _NANODEMAC_LIB_H
 
 #include <inttypes.h>
-#include <wprogram.h>
+#include <WProgram.h>
 
 class NanodeMAC {
   private:
