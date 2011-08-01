@@ -46,9 +46,9 @@ void NanodeUIP::init(void) {
   uip_init();
 
   /* We should eventually DHCP, but let's get other things working first */
-  uip_ipaddr(ipaddr, 192,168,30,200);
+  uip_ipaddr(ipaddr, 192,168,73,200);
   uip_sethostaddr(ipaddr);
-  uip_ipaddr(ipaddr, 192,168,30,4);
+  uip_ipaddr(ipaddr, 192,168,73,4);
   uip_setdraddr(ipaddr);
   uip_ipaddr(ipaddr, 255,255,255,0);
   uip_setnetmask(ipaddr);

@@ -1,13 +1,23 @@
-uIP is a very small implementation of the TCP/IP stack that is written
-by Adam Dunkels <adam@sics.se>. More information can be obtained 
-at the uIP homepage at http://www.sics.se/~adam/uip/.
+This is a port of the uIP network stack from SICS to the Nanode.  It
+presents itself as an Arduino library.
 
-This is version $Name: uip-1-0 $.
+Minimal sketch to use this library:
 
-The directory structure look as follows:
+#include <NanodeUIP.h>
 
-apps/  - Example applications
-doc/   - Documentation
-lib/   - Library code used by some applications
-uip/   - uIP TCP/IP stack code
-unix/  - uIP as a user space process under FreeBSD or Linux
+NanodeUIP uip;
+
+void setup() {
+  char buf[20];
+
+  Serial.begin(38400);
+  Serial.println("UIP test");
+  uip.init();
+  uip.getMACstr(buf);
+  Serial.println(buf);
+  Serial.println("UIP init done");
+}
+
+void loop() {
+  uip.poll();
+}
