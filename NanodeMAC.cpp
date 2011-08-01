@@ -135,7 +135,7 @@ void NanodeMAC( struct uip_eth_addr *mac_address ) {
   unio_sendByte(0xFA);
   
   // read 6 bytes into array
-  unio_readBytes((byte *)mac_address, 6);
+  unio_readBytes(mac_address->addr, 6);
   
   // back to standby
   unio_standby();
