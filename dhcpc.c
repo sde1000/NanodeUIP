@@ -148,6 +148,9 @@ create_msg(register struct dhcp_msg *m)
   m->hops = 0;
   memcpy(m->xid, xid, sizeof(m->xid));
   m->secs = 0;
+  // We request a broadcast response because otherwise the reply would have
+  // our new IP address as the destination - and since we don't know that
+  // yet, the UIP input processing code would discard it.
   m->flags = HTONS(BOOTP_BROADCAST); /*  Broadcast bit. */
   /*  uip_ipaddr_copy(m->ciaddr, uip_hostaddr);*/
   memcpy(m->ciaddr, uip_hostaddr, sizeof(m->ciaddr));
@@ -248,13 +251,19 @@ static
 PT_THREAD(handle_dhcp(void))
 {
   PT_BEGIN(&s.pt);
-  
+
   /* try_again:*/
   s.state = STATE_SENDING;
   s.ticks = CLOCK_SECOND;
 
   do {
     send_discover();
+    /* Sending does not clear the NEWDATA flag.  The packet doesn't
+       actually get sent until we yield at least once.  If we don't
+       clear the flag ourselves, we will enter an infinite loop here.
+       This is arguably a bug in uip.c and the uip_send() function
+       should probably clear the NEWDATA flag. */
+    uip_flags=uip_flags&(~UIP_NEWDATA);
     timer_set(&s.timer, s.ticks);
     PT_WAIT_UNTIL(&s.pt, uip_newdata() || timer_expired(&s.timer));
 
@@ -263,15 +272,16 @@ PT_THREAD(handle_dhcp(void))
       break;
     }
 
-    if(s.ticks < CLOCK_SECOND * 60) {
+    if(s.ticks < CLOCK_SECOND * 20) {
       s.ticks *= 2;
     }
   } while(s.state != STATE_OFFER_RECEIVED);
-  
+
   s.ticks = CLOCK_SECOND;
 
   do {
     send_request();
+    uip_flags=uip_flags&(~UIP_NEWDATA);
     timer_set(&s.timer, s.ticks);
     PT_WAIT_UNTIL(&s.pt, uip_newdata() || timer_expired(&s.timer));
 
@@ -328,7 +338,7 @@ dhcpc_init(const void *mac_addr, int mac_len)
   s.mac_len  = mac_len;
 
   s.state = STATE_INITIAL;
-  uip_ipaddr(addr, 255,255,255,255);
+  uip_ipaddr(&addr, 255,255,255,255);
   s.conn = uip_udp_new(&addr, HTONS(DHCPC_SERVER_PORT));
   if(s.conn != NULL) {
     uip_udp_bind(s.conn, HTONS(DHCPC_CLIENT_PORT));

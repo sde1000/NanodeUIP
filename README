@@ -5,8 +5,6 @@ Minimal sketch to use this library:
 
 #include <NanodeUIP.h>
 
-NanodeUIP uip;
-
 void setup() {
   char buf[20];
 
@@ -21,3 +19,30 @@ void setup() {
 void loop() {
   uip.poll();
 }
+
+
+
+Notes on porting decisions:
+
+clock_time_t has to be unsigned long (4 bytes) if we're going to use
+the output of millis() as the clock.  This overflows every 50 days -
+acceptable.
+
+If we only used an unsigned int (2 bytes) the time would overflow
+every 65s and half of this would be the maximum wait possible - some
+protocols demand more.  The DHCP client would enter an infinite loop
+when its retransmission time grew beyond 32s.
+
+We might get away with using millis()/10 as the clock if we define
+clock_time_t to be unsigned int.  It would overflow every 10 minutes
+or so, allowing for a maximum wait of 5 minutes.
+
+
+RAM is very valuable.  The packet buffer takes up most of it (and
+applications should construct their data to send directly within this
+buffer when possible).  Constant strings in the user's program also
+take up RAM; if your "Serial.println" is just outputting a newline,
+when you expect it to do something else, your program has probably
+outgrown the 2k RAM.  If you can find the build directory, you can run
+avr-objdump -h on the .elf file and add up the sizes of the .data and
+.bss sections - if this is approaching 2k you're in trouble.

@@ -249,6 +249,11 @@ void enc28j60InitWithCs( uint8_t* macaddr, uint8_t csPin )
 	// do bank 1 stuff, packet filter:
         // For broadcast packets we allow only ARP packtets
         // All other packets should be unicast only for our mac (MAADR)
+	// 
+	// (Note from SDE: in some environments, DHCP offers are broadcast.
+	// The UIP DHCP client requires broadcast offers - without them
+	// the UIP input processing code will throw away the response packet
+	// before the client sees it.)
         //
         // The pattern to match on is therefore
         // Type     ETH.DST
@@ -256,9 +261,10 @@ void enc28j60InitWithCs( uint8_t* macaddr, uint8_t csPin )
         // 06 08 -- ff ff ff ff ff ff -> ip checksum for theses bytes=f7f9
         // in binary these poitions are:11 0000 0011 1111
         // This is hex 303F->EPMM0=0x3f,EPMM1=0x30
-	enc28j60Write(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN);
-	enc28j60WriteWord(EPMM0, 0x303f);
-	enc28j60WriteWord(EPMCSL, 0xf7f9);
+	//enc28j60Write(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN);
+	//enc28j60WriteWord(EPMM0, 0x303f);
+	//enc28j60WriteWord(EPMCSL, 0xf7f9);
+	enc28j60Write(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_BCEN);
         //
 	// do bank 2 stuff
 	// enable MAC receive

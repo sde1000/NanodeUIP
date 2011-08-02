@@ -70,14 +70,14 @@ typedef unsigned short uip_stats_t;
  *
  * \hideinitializer
  */
-#define UIP_CONF_MAX_CONNECTIONS 10
+#define UIP_CONF_MAX_CONNECTIONS 2
 
 /**
  * Maximum number of listening TCP ports.
  *
  * \hideinitializer
  */
-#define UIP_CONF_MAX_LISTENPORTS 5
+#define UIP_CONF_MAX_LISTENPORTS 1
 
 /**
  * uIP buffer size.
@@ -91,14 +91,14 @@ typedef unsigned short uip_stats_t;
  *
  * \hideinitializer
  */
-#define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
+#define UIP_CONF_BYTE_ORDER      BIG_ENDIAN
 
 /**
  * Logging on or off
  *
  * \hideinitializer
  */
-#define UIP_CONF_LOGGING         1
+#define UIP_CONF_LOGGING         0
 
 /**
  * UDP support on or off
@@ -106,6 +106,8 @@ typedef unsigned short uip_stats_t;
  * \hideinitializer
  */
 #define UIP_CONF_UDP             1
+
+#define UIP_CONF_UDP_CONNS       2
 
 /**
  * UDP checksums on or off
@@ -119,7 +121,7 @@ typedef unsigned short uip_stats_t;
  *
  * \hideinitializer
  */
-#define UIP_CONF_STATISTICS      1
+#define UIP_CONF_STATISTICS      0
 
 /* Here we include the header file for the application(s) we use in
    our project. */
@@ -134,13 +136,13 @@ typedef unsigned short uip_stats_t;
 
 typedef uint8_t uip_tcp_appstate_t;
 
-typedef uint8_t uip_udp_appstate_t;
-
 extern void nullproc(void);
 
 /* Null appcalls for now - we need to do a registry system so that
    clients of this library can register their own callbacks. */
 #define UIP_APPCALL nullproc
-#define UIP_UDP_APPCALL nullproc
+
+/* The DHCP client header file defines uip_udp_appstate_t and UIP_UDP_APPCALL */
+#include "dhcpc.h"
 
 #endif /* __UIP_CONF_H__ */
