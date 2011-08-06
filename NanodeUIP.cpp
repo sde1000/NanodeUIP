@@ -65,6 +65,8 @@ void NanodeUIP::init(void) {
   while (!enc28j60linkup());
   Serial.println("Link up");
   dhcpc_init(&uip_ethaddr,6);
+
+  hello_world_init();
 }
 
 // Requires a buffer of at least 18 bytes to format into

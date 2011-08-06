@@ -126,7 +126,7 @@ typedef unsigned short uip_stats_t;
 /* Here we include the header file for the application(s) we use in
    our project. */
 /*#include "smtp.h"*/
-/*#include "hello-world.h"*/
+#include "hello-world.h"
 /*#include "telnetd.h"*/
 /*#include "webserver.h"*/
 /*#include "dhcpc.h"*/
@@ -134,13 +134,7 @@ typedef unsigned short uip_stats_t;
 /*#include "webclient.h"*/
 /* XXX must figure out a better way of doing this! */
 
-typedef uint8_t uip_tcp_appstate_t;
-
 extern void nullproc(void);
-
-/* Null appcalls for now - we need to do a registry system so that
-   clients of this library can register their own callbacks. */
-#define UIP_APPCALL nullproc
 
 /* The DHCP client header file defines uip_udp_appstate_t and UIP_UDP_APPCALL */
 #include "dhcpc.h"
