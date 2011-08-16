@@ -46,3 +46,44 @@ when you expect it to do something else, your program has probably
 outgrown the 2k RAM.  If you can find the build directory, you can run
 avr-objdump -h on the .elf file and add up the sizes of the .data and
 .bss sections - if this is approaching 2k you're in trouble.
+
+How are we going to manage memory allocation for connection state?
+The size is application-dependent, and I think most people are going
+to want at least two applications running at once (even if one of them
+is just the DHCP client).
+
+uIP as distributed assumes that there's going to be a single TCP
+application and a single UDP application.  State for each connection
+to these applications is allocated at compile time as a member of the
+uIP connection structure.
+
+How much space is an application going to need, per connection?
+
+TCP applications:
+(Note: struct psock is 20 bytes)
+hello-world: 70 bytes
+webclient: 359 bytes
+webserver: 128 bytes
+telnetd: 75 bytes
+smtp: 17 bytes (but implementation looks buggy!)
+
+UDP applications:
+resolv: 2 bytes per-connection, plus 41 bytes per cache entry (default 4)
+dhcpc: 43 bytes (possibly reducible to 41 bytes)
+
+
+With no applications beyond the DHCP client, uIP currently takes about
+1k of RAM.  That leaves 1k for all the application state, the heap and
+the stack.  I think it's reasonable to be able to serve three TCP
+connections at once by default; if we allow 150 bytes state per
+connection that leaves at least 512 bytes for heap and stack.
+
+To allow for multiple applications we need to store a function pointer
+per connection so the uIP code can call the appropriate handler.  I
+propose to insert this into struct uip_conn and define the
+UIP_APPCALL() macro to indirect through it.
+
+How does this function pointer get into the uip_conn structure?  We
+need to modify the code that opens a connection to put it there.
+Store the pointer for each listening port, and insert it into the
+newly-formed connection.

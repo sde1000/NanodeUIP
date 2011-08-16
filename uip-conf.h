@@ -70,14 +70,14 @@ typedef unsigned short uip_stats_t;
  *
  * \hideinitializer
  */
-#define UIP_CONF_MAX_CONNECTIONS 2
+#define UIP_CONF_MAX_CONNECTIONS 3
 
 /**
  * Maximum number of listening TCP ports.
  *
  * \hideinitializer
  */
-#define UIP_CONF_MAX_LISTENPORTS 1
+#define UIP_CONF_MAX_LISTENPORTS 3
 
 /**
  * uIP buffer size.
@@ -125,8 +125,9 @@ typedef unsigned short uip_stats_t;
 
 /* Here we include the header file for the application(s) we use in
    our project. */
+/* Oh no we don't! We define the maximum size of application state instead. */
 /*#include "smtp.h"*/
-#include "hello-world.h"
+/*#include "hello-world.h"*/
 /*#include "telnetd.h"*/
 /*#include "webserver.h"*/
 /*#include "dhcpc.h"*/
@@ -134,9 +135,25 @@ typedef unsigned short uip_stats_t;
 /*#include "webclient.h"*/
 /* XXX must figure out a better way of doing this! */
 
+#define TCP_APP_STATE_SIZE 150
+#define UDP_APP_STATE_SIZE 50
+
+typedef void tcp_appcall_fn(void);
+typedef void udp_appcall_fn(void);
+
+typedef struct tcp_appstate {
+  tcp_appcall_fn *appcall;
+  uint8_t state[TCP_APP_STATE_SIZE];
+} uip_tcp_appstate_t;
+
+typedef struct udp_appstate {
+  udp_appcall_fn *appcall;
+  uint8_t state[UDP_APP_STATE_SIZE];
+} uip_udp_appstate_t;
+
 extern void nullproc(void);
 
-/* The DHCP client header file defines uip_udp_appstate_t and UIP_UDP_APPCALL */
-#include "dhcpc.h"
+#define UIP_APPCALL() uip_conn->appstate.appcall()
+#define UIP_UDP_APPCALL() uip_udp_conn->appstate.appcall()
 
 #endif /* __UIP_CONF_H__ */

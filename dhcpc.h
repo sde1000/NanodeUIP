@@ -63,8 +63,8 @@ void dhcpc_configured(const struct dhcpc_state *s);
 
 /* This doesn't appear to be used, and we don't want a copy of the
    DHCP client state for every UDP connection! */
-typedef struct dhcpc_state *uip_udp_appstate_t;
-#define UIP_UDP_APPCALL dhcpc_appcall
+//typedef struct dhcpc_state *uip_udp_appstate_t;
+//#define UIP_UDP_APPCALL dhcpc_appcall
 
 
 #endif /* __DHCPC_H__ */

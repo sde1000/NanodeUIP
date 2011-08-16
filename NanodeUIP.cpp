@@ -8,6 +8,7 @@ extern "C" {
   #include "uip.h"
   #include "uip_arp.h"
   #include "enc28j60.h"
+  #include "dhcpc.h"
 }
 
 extern "C" void nanode_log(char *msg);
@@ -51,11 +52,11 @@ void NanodeUIP::init(void) {
   timer_set(&arp_timer, CLOCK_SECOND * 10);
   uip_init();
 
-#if 0
+#if 1
   /* We should eventually DHCP, but let's get other things working first */
-  uip_ipaddr(ipaddr, 192,168,73,200);
+  uip_ipaddr(ipaddr, 192,168,1,2);
   uip_sethostaddr(ipaddr);
-  uip_ipaddr(ipaddr, 192,168,73,4);
+  uip_ipaddr(ipaddr, 192,168,1,1);
   uip_setdraddr(ipaddr);
   uip_ipaddr(ipaddr, 255,255,255,0);
   uip_setnetmask(ipaddr);
@@ -64,9 +65,9 @@ void NanodeUIP::init(void) {
   // Wait for link up
   while (!enc28j60linkup());
   Serial.println("Link up");
-  dhcpc_init(&uip_ethaddr,6);
+  //  dhcpc_init(&uip_ethaddr,6);
 
-  hello_world_init();
+  //  hello_world_init();
 }
 
 // Requires a buffer of at least 18 bytes to format into

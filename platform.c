@@ -1,4 +1,5 @@
 #include "clock.h"
+#include "uip-conf.h"
 
 #include <WProgram.h>
 
