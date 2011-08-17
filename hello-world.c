@@ -37,11 +37,11 @@ static int handle_connection(struct hello_world_state *s);
  * from the system initialization code, some time after uip_init() is
  * called.
  */
-void
-hello_world_init(void)
+int
+hello_world_init(u16_t port)
 {
-  /* We start to listen for connections on TCP port 1000. */
-  uip_listen(HTONS(1000),hello_world_appcall);
+  /* We start to listen for connections on the specified TCP port */
+  return uip_listen(HTONS(port),hello_world_appcall);
 }
 /*---------------------------------------------------------------------------*/
 /*

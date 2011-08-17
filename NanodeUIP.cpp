@@ -52,24 +52,39 @@ void NanodeUIP::init(void) {
   timer_set(&periodic_timer, CLOCK_SECOND / 2);
   timer_set(&arp_timer, CLOCK_SECOND * 10);
   uip_init();
-
-#if 0
-  /* We should eventually DHCP, but let's get other things working first */
-  uip_ipaddr(ipaddr, 192,168,1,2);
-  uip_sethostaddr(ipaddr);
-  uip_ipaddr(ipaddr, 192,168,1,1);
-  uip_setdraddr(ipaddr);
-  uip_ipaddr(ipaddr, 255,255,255,0);
-  uip_setnetmask(ipaddr);
-#endif
-
-  // Wait for link up
-  while (!enc28j60linkup());
-  Serial.println("Link up");
-  dhcpc_init(&uip_ethaddr,6);
-
-  hello_world_init();
 }
+
+void NanodeUIP::wait_for_link(void) {
+  while (!enc28j60linkup());
+}
+
+boolean NanodeUIP::link_is_up(void) {
+  return enc28j60linkup()!=0;
+}
+
+void NanodeUIP::set_ip_addr(byte a, byte b, byte c, byte d) {
+  uip_ipaddr_t ipaddr;
+  uip_ipaddr(ipaddr, a,b,c,d);
+  uip_sethostaddr(ipaddr);
+}
+
+void NanodeUIP::set_netmask(byte a, byte b, byte c, byte d) {
+  uip_ipaddr_t ipaddr;
+  uip_ipaddr(ipaddr, a,b,c,d);
+  uip_setnetmask(ipaddr);
+}
+
+void NanodeUIP::set_gateway_addr(byte a, byte b, byte c, byte d) {
+  uip_ipaddr_t ipaddr;
+  uip_ipaddr(ipaddr, a,b,c,d);
+  uip_setdraddr(ipaddr);
+}
+
+void NanodeUIP::set_nameserver_addr(byte a, byte b, byte c, byte d) {
+  uip_ipaddr_t ipaddr;
+  uip_ipaddr(ipaddr, a,b,c,d);
+  //  resolv_conf(ipaddr);
+}  
 
 // Requires a buffer of at least 18 bytes to format into
 void NanodeUIP::getMACstr(char *buf) {
@@ -79,12 +94,33 @@ void NanodeUIP::getMACstr(char *buf) {
 }
 
 // Requires a buffer of at least 16 bytes to format into
-void NanodeUIP::getIPstr(char *buf) {
-  sprintf(buf,"%d.%d.%d.%d",uip_hostaddr[0]&0xff,uip_hostaddr[0]>>8,
-	  uip_hostaddr[1]&0xff,uip_hostaddr[1]>>8);
+static void format_ipaddr(char *buf,uint16_t *addr) {
+  sprintf(buf,"%d.%d.%d.%d",addr[0]&0xff,addr[0]>>8,
+	  addr[1]&0xff,addr[1]>>8);
+}
+
+void NanodeUIP::get_ip_addr_str(char *buf) {
+  format_ipaddr(buf,uip_hostaddr);
+}
+
+void NanodeUIP::get_netmask_str(char *buf) {
+  format_ipaddr(buf,uip_netmask);
+}
+
+void NanodeUIP::get_gateway_str(char *buf) {
+  format_ipaddr(buf,uip_draddr);
 }
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
+
+boolean NanodeUIP::start_dhcp(dhcp_status_fn *callback) {
+  dhcp_status_callback=callback;
+  return dhcpc_init(&uip_ethaddr,6);
+}
+
+boolean NanodeUIP::start_hello_world(word port) {
+  return hello_world_init(port);
+}
 
 void NanodeUIP::poll(void) {
   int i;

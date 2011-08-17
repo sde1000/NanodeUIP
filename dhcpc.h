@@ -54,7 +54,7 @@ struct dhcpc_state {
   u16_t default_router[2];
 };
 
-void dhcpc_init(const void *mac_addr, int mac_len);
+int dhcpc_init(const void *mac_addr, int mac_len);
 void dhcpc_request(void);
 
 void dhcpc_appcall(void);

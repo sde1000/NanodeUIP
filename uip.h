@@ -447,7 +447,7 @@ extern u8_t uip_buf[UIP_BUFSIZE+2];
  *
  * \param port A 16-bit port number in network byte order.
  */
-void uip_listen(u16_t port, tcp_appcall_fn *app);
+int uip_listen(u16_t port, tcp_appcall_fn *app);
 
 /**
  * Stop listening to the specified port.

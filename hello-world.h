@@ -38,7 +38,7 @@ struct hello_world_state {
 /* Finally we define the application function to be called by uIP. */
 void hello_world_appcall(void);
 
-void hello_world_init(void);
+int hello_world_init(u16_t port);
 
 #endif /* __HELLO_WORLD_H__ */
 /** @} */

@@ -329,7 +329,7 @@ PT_THREAD(handle_dhcp(void))
   PT_END(&s.pt);
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 dhcpc_init(const void *mac_addr, int mac_len)
 {
   uip_ipaddr_t addr;
@@ -342,8 +342,10 @@ dhcpc_init(const void *mac_addr, int mac_len)
   s.conn = uip_udp_new(&addr, HTONS(DHCPC_SERVER_PORT),handle_dhcp);
   if(s.conn != NULL) {
     uip_udp_bind(s.conn, HTONS(DHCPC_CLIENT_PORT));
+    PT_INIT(&s.pt);
+    return 1;
   }
-  PT_INIT(&s.pt);
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 void
