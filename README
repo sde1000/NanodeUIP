@@ -71,6 +71,11 @@ UDP applications:
 resolv: 2 bytes per-connection, plus 41 bytes per cache entry (default 4)
 dhcpc: 43 bytes (possibly reducible to 41 bytes)
 
+(On further reflection, per-connection state for UDP is really
+pointless.  I expect apps using UDP will have a single copy of their
+state allocated in .data and .bss - we just need to store their
+appcall function pointer in uIP's UDP connection structure so we can
+demultiplex based on destination port number.)
 
 With no applications beyond the DHCP client, uIP currently takes about
 1k of RAM.  That leaves 1k for all the application state, the heap and

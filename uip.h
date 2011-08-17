@@ -447,7 +447,7 @@ extern u8_t uip_buf[UIP_BUFSIZE+2];
  *
  * \param port A 16-bit port number in network byte order.
  */
-void uip_listen(u16_t port);
+void uip_listen(u16_t port, tcp_appcall_fn *app);
 
 /**
  * Stop listening to the specified port.
@@ -495,7 +495,7 @@ void uip_unlisten(u16_t port);
  * or NULL if no connection could be allocated.
  *
  */
-struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, u16_t port);
+struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, u16_t port, tcp_appcall_fn *app);
 
 
 
@@ -763,7 +763,8 @@ void uip_send(const void *data, int len);
  * \return The uip_udp_conn structure for the new connection or NULL
  * if no connection could be allocated.
  */
-struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
+struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
+				 udp_appcall_fn *app);
 
 /**
  * Removed a UDP connection.
@@ -1176,6 +1177,7 @@ struct uip_conn {
   u8_t nrtx;          /**< The number of retransmissions for the last
 			 segment sent. */
 
+  tcp_appcall_fn *appcall;
   /** The application state. */
   uip_tcp_appstate_t appstate;
 };
@@ -1214,7 +1216,7 @@ struct uip_udp_conn {
   u8_t  ttl;          /**< Default time-to-live. */
 
   /** The application state. */
-  uip_udp_appstate_t appstate;
+  udp_appcall_fn *appcall;
 };
 
 /**

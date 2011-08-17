@@ -142,18 +142,17 @@ typedef void tcp_appcall_fn(void);
 typedef void udp_appcall_fn(void);
 
 typedef struct tcp_appstate {
-  tcp_appcall_fn *appcall;
   uint8_t state[TCP_APP_STATE_SIZE];
 } uip_tcp_appstate_t;
 
-typedef struct udp_appstate {
-  udp_appcall_fn *appcall;
-  uint8_t state[UDP_APP_STATE_SIZE];
-} uip_udp_appstate_t;
-
 extern void nullproc(void);
 
-#define UIP_APPCALL() uip_conn->appstate.appcall()
-#define UIP_UDP_APPCALL() uip_udp_conn->appstate.appcall()
+#if 0
+#define UIP_APPCALL() do { if (uip_conn && uip_conn->appcall) uip_conn->appcall(); } while (0)
+#define UIP_UDP_APPCALL() do { uip_udp_conn->appcall(); } while (0)
+#else
+#define UIP_APPCALL() uip_conn->appcall()
+#define UIP_UDP_APPCALL() uip_udp_conn->appcall()
+#endif
 
 #endif /* __UIP_CONF_H__ */

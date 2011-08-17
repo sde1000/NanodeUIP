@@ -169,6 +169,9 @@ struct uip_conn uip_conns[UIP_CONNS];
 u16_t uip_listenports[UIP_LISTENPORTS];
                              /* The uip_listenports list all currently
 				listning ports. */
+tcp_appcall_fn *uip_listenapps[UIP_LISTENPORTS];
+                             /* Application functions corresponding to
+                                listening ports. */
 #if UIP_UDP
 struct uip_udp_conn *uip_udp_conn;
 struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
@@ -404,7 +407,7 @@ uip_init(void)
 /*---------------------------------------------------------------------------*/
 #if UIP_ACTIVE_OPEN
 struct uip_conn *
-uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
+uip_connect(uip_ipaddr_t *ripaddr, u16_t rport, tcp_appcall_fn *app)
 {
   register struct uip_conn *conn, *cconn;
   
@@ -445,6 +448,7 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
     return 0;
   }
   
+  conn->appcall = app;
   conn->tcpstateflags = UIP_SYN_SENT;
 
   conn->snd_nxt[0] = iss[0];
@@ -470,7 +474,7 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
 /*---------------------------------------------------------------------------*/
 #if UIP_UDP
 struct uip_udp_conn *
-uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport)
+uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport, udp_appcall_fn *app)
 {
   register struct uip_udp_conn *conn;
   
@@ -503,6 +507,7 @@ uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport)
   
   conn->lport = HTONS(lastport);
   conn->rport = rport;
+  conn->appcall = app;
   if(ripaddr == NULL) {
     memset(conn->ripaddr, 0, sizeof(uip_ipaddr_t));
   } else {
@@ -526,11 +531,12 @@ uip_unlisten(u16_t port)
 }
 /*---------------------------------------------------------------------------*/
 void
-uip_listen(u16_t port)
+uip_listen(u16_t port,tcp_appcall_fn *app)
 {
   for(c = 0; c < UIP_LISTENPORTS; ++c) {
     if(uip_listenports[c] == 0) {
       uip_listenports[c] = port;
+      uip_listenapps[c] = app;
       return;
     }
   }
@@ -1270,6 +1276,9 @@ uip_process(u8_t flag)
      with a connection in LISTEN. In that case, we should create a new
      connection and send a SYNACK in return. */
  found_listen:
+  /* Note that variable c contains an index into the uip_listenapps
+     array at this point. */
+  tmp16=c;
   /* First we check if there are any connections avaliable. Unused
      connections are kept in the same table as used connections, but
      unused ones have the tcpstate set to CLOSED. Also, connections in
@@ -1301,6 +1310,7 @@ uip_process(u8_t flag)
   uip_conn = uip_connr;
   
   /* Fill in the necessary fields for the new connection. */
+  uip_connr->appcall=uip_listenapps[tmp16];
   uip_connr->rto = uip_connr->timer = UIP_RTO;
   uip_connr->sa = 0;
   uip_connr->sv = 4;

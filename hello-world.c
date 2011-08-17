@@ -41,7 +41,7 @@ void
 hello_world_init(void)
 {
   /* We start to listen for connections on TCP port 1000. */
-  uip_listen(HTONS(1000));
+  uip_listen(HTONS(1000),hello_world_appcall);
 }
 /*---------------------------------------------------------------------------*/
 /*
