@@ -31,8 +31,9 @@
 
 struct hello_world_state {
   struct psock p;
-  char inputbuffer[10];
-  char name[40];
+  char inputbuffer[20];
+  char name[20];
+  char quest[20];
 };
 
 /* Finally we define the application function to be called by uIP. */

@@ -66,7 +66,7 @@ hello_world_appcall(void)
    * the protosocket in our applications' state structure.
    */
   if(uip_connected()) {
-    PSOCK_INIT(&s->p, s->inputbuffer, sizeof(s->inputbuffer));
+    PSOCK_INIT(&s->p, s->inputbuffer, sizeof(s->inputbuffer)-1);
   }
 
   /*
@@ -88,11 +88,18 @@ handle_connection(struct hello_world_state *s)
 {
   PSOCK_BEGIN(&s->p);
 
-  PSOCK_SEND_STR(&s->p, "Hello. What is your name?\n");
+  PSOCK_SEND_STR(&s->p, "Hello. What is your name?\n>>> ");
   PSOCK_READTO(&s->p, '\n');
+  s->inputbuffer[PSOCK_DATALEN(&s->p)]=0;
   strncpy(s->name, s->inputbuffer, sizeof(s->name));
+  PSOCK_SEND_STR(&s->p, "What is your quest?\n>>> ");
+  PSOCK_READTO(&s->p, '\n');
+  s->inputbuffer[PSOCK_DATALEN(&s->p)]=0;
+  strncpy(s->quest, s->inputbuffer, sizeof(s->quest));
   PSOCK_SEND_STR(&s->p, "Hello ");
   PSOCK_SEND_STR(&s->p, s->name);
+  PSOCK_SEND_STR(&s->p, "Your quest is: ");
+  PSOCK_SEND_STR(&s->p, s->quest);
   PSOCK_CLOSE(&s->p);
   
   PSOCK_END(&s->p);
