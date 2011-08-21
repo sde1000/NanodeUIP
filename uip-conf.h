@@ -136,7 +136,6 @@ typedef unsigned short uip_stats_t;
 /* XXX must figure out a better way of doing this! */
 
 #define TCP_APP_STATE_SIZE 150
-#define UDP_APP_STATE_SIZE 50
 
 typedef void tcp_appcall_fn(void);
 typedef void udp_appcall_fn(void);
@@ -154,5 +153,8 @@ extern void nullproc(void);
 #define UIP_APPCALL() uip_conn->appcall()
 #define UIP_UDP_APPCALL() uip_udp_conn->appcall()
 #endif
+
+#define UIPASSERT(predicate) \
+  typedef char assertion_failed[2*((predicate)!=0)-1];
 
 #endif /* __UIP_CONF_H__ */
