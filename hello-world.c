@@ -26,7 +26,7 @@
 #include "uip.h"
 #include <string.h>
 
-UIPASSERT(sizeof(struct hello_world_state)<=TCP_APP_STATE_SIZE);
+UIPASSERT(sizeof(struct hello_world_state)<=TCP_APP_STATE_SIZE)
 
 /*
  * Declaration of the protosocket function that handles the connection

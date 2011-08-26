@@ -154,7 +154,12 @@ extern void nullproc(void);
 #define UIP_UDP_APPCALL() uip_udp_conn->appcall()
 #endif
 
-#define UIPASSERT(predicate) \
-  typedef char assertion_failed[2*((predicate)!=0)-1];
+#define UIPASSERT_LINE(predicate,line) \
+  typedef char assertion_failed_line_##line [2*((predicate)!=0)-1];
+
+/* Yes, this intermediate macro really is necessary! */
+#define UIPASSERT_LINE_(predicate,line) UIPASSERT_LINE(predicate,line)
+
+#define UIPASSERT(predicate) UIPASSERT_LINE_(predicate,__LINE__)
 
 #endif /* __UIP_CONF_H__ */
