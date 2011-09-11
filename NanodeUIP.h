@@ -5,17 +5,24 @@
 
 extern "C" {
 #include "timer.h"
+extern void resolv_conf(const uint16_t *dnsserver);
 }
 
 #define DHCP_STATUS_OK 1
 #define DHCP_STATUS_DOWN 0
-typedef void dhcp_status_fn(int status);
+/* If called with DHCP_STATUS_OK, dnsaddr is the address discovered
+   for the nameserver.  If you want to use the resolver library, call
+   resolv_conf(dnsaddr) in your implementation of this callback. */
+typedef void dhcp_status_fn(int status,const uint16_t *dnsaddr);
+
+typedef void resolv_result_fn(char *name, uint16_t *addr);
 
 class NanodeUIP {
  private:
   struct timer periodic_timer, arp_timer;
  public:
   dhcp_status_fn *dhcp_status_callback;
+  resolv_result_fn *resolv_status_callback;
   /* This constructor can't actually do anything, because it gets
      called before usable amounts of Arduino infrastructure are
      initialised.   Call the init() function from your sketch instead. */
@@ -36,6 +43,7 @@ class NanodeUIP {
 
   /* Output addresses to string buffers */
   void getMACstr(char *buf); // buf must be at least 18 bytes
+  void format_ipaddr(char *buf, uint16_t *addr); // 16 byte buf
   void get_ip_addr_str(char *buf); // buf must be at least 16 bytes
   void get_netmask_str(char *buf); // buf must be at least 16 bytes
   void get_gateway_str(char *buf); // buf must be at least 16 bytes
@@ -51,7 +59,16 @@ class NanodeUIP {
   boolean start_dhcp(dhcp_status_fn *callback);
 
   boolean start_hello_world(word port);
+
+  /* Call this in setup() if you intend to use the resolver library. */
+  void init_resolv(resolv_result_fn *callback);
+
+  /* Start looking up a name; when found it will be cached, and the
+     resolver callback function will be called. */
+  void query_name(char *name);
   
+  /* Return an address from the cache */
+  uint16_t *lookup_name(char *name);
 };
 
 extern NanodeUIP uip; // There can be only one!

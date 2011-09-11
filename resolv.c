@@ -435,13 +435,13 @@ resolv_getserver(void)
  */
 /*---------------------------------------------------------------------------*/
 void
-resolv_conf(u16_t *dnsserver)
+resolv_conf(const u16_t *dnsserver)
 {
   if(resolv_conn != NULL) {
     uip_udp_remove(resolv_conn);
   }
   
-  resolv_conn = uip_udp_new(dnsserver, HTONS(53));
+  resolv_conn = uip_udp_new(dnsserver, HTONS(53),resolv_appcall);
 }
 /*---------------------------------------------------------------------------*/
 /**

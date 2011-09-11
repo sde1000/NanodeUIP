@@ -123,6 +123,8 @@ typedef unsigned short uip_stats_t;
  */
 #define UIP_CONF_STATISTICS      0
 
+#define UIP_CONF_RESOLV_ENTRIES  2
+
 /* Here we include the header file for the application(s) we use in
    our project. */
 /* Oh no we don't! We define the maximum size of application state instead. */

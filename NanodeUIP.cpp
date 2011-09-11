@@ -10,6 +10,7 @@ extern "C" {
   #include "enc28j60.h"
   #include "dhcpc.h"
   #include "hello-world.h"
+  #include "resolv.h"
 }
 
 extern "C" void nanode_log(char *msg);
@@ -24,9 +25,23 @@ void dhcpc_configured(const struct dhcpc_state *s) {
   uip_sethostaddr(s->ipaddr);
   uip_setnetmask(s->netmask);
   uip_setdraddr(s->default_router);
-  //  resolv_conf(s->dnsaddr);
+  /* We don't call resolv_conf here, because that would drag in all
+     the resolver code and state whether or not it's used by the
+     sketch.  Instead we pass the address of the DNS server to the
+     DHCP status callback code provided by the sketch and allow that
+     to initialise the resolver if desired. */
+  // resolv_conf(s->dnsaddr);
   if (uip.dhcp_status_callback!=NULL) {
-    uip.dhcp_status_callback(DHCP_STATUS_OK);
+    uip.dhcp_status_callback(DHCP_STATUS_OK,s->dnsaddr);
+  }
+}
+
+extern "C" void resolv_found(char *name, u16_t *ipaddr);
+
+void resolv_found(char *name, u16_t *ipaddr)
+{
+  if (uip.resolv_status_callback!=NULL) {
+    uip.resolv_status_callback(name,ipaddr);
   }
 }
 
@@ -83,7 +98,7 @@ void NanodeUIP::set_gateway_addr(byte a, byte b, byte c, byte d) {
 void NanodeUIP::set_nameserver_addr(byte a, byte b, byte c, byte d) {
   uip_ipaddr_t ipaddr;
   uip_ipaddr(ipaddr, a,b,c,d);
-  //  resolv_conf(ipaddr);
+  resolv_conf(ipaddr);
 }  
 
 // Requires a buffer of at least 18 bytes to format into
@@ -94,7 +109,7 @@ void NanodeUIP::getMACstr(char *buf) {
 }
 
 // Requires a buffer of at least 16 bytes to format into
-static void format_ipaddr(char *buf,uint16_t *addr) {
+void NanodeUIP::format_ipaddr(char *buf,uint16_t *addr) {
   sprintf(buf,"%d.%d.%d.%d",addr[0]&0xff,addr[0]>>8,
 	  addr[1]&0xff,addr[1]>>8);
 }
@@ -111,8 +126,6 @@ void NanodeUIP::get_gateway_str(char *buf) {
   format_ipaddr(buf,uip_draddr);
 }
 
-#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
-
 boolean NanodeUIP::start_dhcp(dhcp_status_fn *callback) {
   dhcp_status_callback=callback;
   return dhcpc_init(&uip_ethaddr,6);
@@ -121,6 +134,21 @@ boolean NanodeUIP::start_dhcp(dhcp_status_fn *callback) {
 boolean NanodeUIP::start_hello_world(word port) {
   return hello_world_init(port);
 }
+
+void NanodeUIP::init_resolv(resolv_result_fn *callback) {
+  resolv_status_callback=callback;
+  resolv_init();
+}
+
+void NanodeUIP::query_name(char *name) {
+  resolv_query(name);
+}
+
+uint16_t *lookup_name(char *name) {
+  return resolv_lookup(name);
+}
+
+#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
 void NanodeUIP::poll(void) {
   int i;

@@ -44,9 +44,7 @@
 #ifndef __RESOLV_H__
 #define __RESOLV_H__
 
-typedef int uip_udp_appstate_t;
 void resolv_appcall(void);
-#define UIP_UDP_APPCALL resolv_appcall
 
 #include "uipopt.h"
 
@@ -64,7 +62,7 @@ void resolv_appcall(void);
 void resolv_found(char *name, u16_t *ipaddr);
 
 /* Functions. */
-void resolv_conf(u16_t *dnsserver);
+void resolv_conf(const u16_t *dnsserver);
 u16_t *resolv_getserver(void);
 void resolv_init(void);
 u16_t *resolv_lookup(char *name);
