@@ -26,6 +26,7 @@
  ***********************************************************************/
 
 #include "NanodeMAC.h"
+#include <avr/interrupt.h>
 #include <inttypes.h>
 #include <WProgram.h>
 
@@ -47,11 +48,11 @@
 
 // Fixed Timings
 // standby pulse time (600us+)
-#define UNIO_TSTBY_US 600
+#define UNIO_TSTBY_US 1000
 // start header setup time (10us+)
 #define UNIO_TSS_US 10
 // start header low pulse (5us+)
-#define UNIO_THDR_US 6
+#define UNIO_THDR_US 10
 
 // SCIO Manipulation macros
 #define BIT0 SCIO_HIGH;WAIT_HALF_BIT;SCIO_LOW;WAIT_HALF_BIT;
@@ -76,7 +77,7 @@ static inline bool unio_readBit()
   return (value2 && !value1);
 }
 
-static void unio_sendByte(byte data) {
+static bool unio_sendByte(byte data) {
   
   SCIO_OUTPUT;
   for (int i=0; i<8; i++) {
@@ -90,7 +91,7 @@ static void unio_sendByte(byte data) {
   // MAK
   BIT1;
   // SAK?
-  bool sak = unio_readBit();
+  return unio_readBit();
 }
 
 static void unio_start_header() {
@@ -99,7 +100,7 @@ static void unio_start_header() {
   unio_sendByte(B01010101);
 }
 
-static byte unio_readBytes(byte *addr, unsigned int length) {
+static bool unio_readBytes(byte *addr, unsigned int length) {
   for (int i=0; i<length; i++) {
     
     byte data = 0;
@@ -112,32 +113,32 @@ static byte unio_readBytes(byte *addr, unsigned int length) {
     } else {
       BIT1; // MAK
     }
-    bool sak = unio_readBit();
+    // SAK?
+    if (!unio_readBit()) return 0;
     addr[i] = data;
   }
+  return 1;
+}
+
+static boolean read_MAC(byte *addr) {
+  unio_standby();
+  unio_start_header();
+
+  if (!unio_sendByte(0xA0)) return 0;
+  if (!unio_sendByte(0x03)) return 0;
+  if (!unio_sendByte(0x00)) return 0;
+  if (!unio_sendByte(0xFA)) return 0;
+  if (!unio_readBytes(addr,6)) return 0;
+  return 1;
 }
 
 void NanodeMAC( struct uip_eth_addr *mac_address ) {
-
-  // standby
-  unio_standby();
-  
-  // start header
-  unio_start_header();
-  
-  // address A0
-  unio_sendByte(0xA0);
-  // 0x3 READ
-  unio_sendByte(0x03);
-  // word address MSB 0x00
-  unio_sendByte(0x00);
-  // word address LSB 0xFA
-  unio_sendByte(0xFA);
-  
-  // read 6 bytes into array
-  unio_readBytes(mac_address->addr, 6);
-  
-  // back to standby
-  unio_standby();
-  
+  cli();
+  do {
+    if (read_MAC(mac_address->addr)) {
+      unio_standby();
+      break;
+    }
+  } while (1);
+  sei();
 }
