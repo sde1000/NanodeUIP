@@ -2,7 +2,6 @@
 
 #include <WProgram.h>
 #include <inttypes.h>
-#include "NanodeMAC.h"
 
 extern "C" {
   #include "uip.h"
@@ -53,15 +52,14 @@ NanodeUIP::NanodeUIP(void) {
   dhcp_status_callback=NULL;
 }
 
-void NanodeUIP::init(void) {
-  struct uip_eth_addr mac;
+void NanodeUIP::init(const byte *macaddr) {
+  const struct uip_eth_addr *mac=(struct uip_eth_addr *)macaddr;
   uip_ipaddr_t ipaddr;
   char buf[20];
 
-  NanodeMAC(&mac);
-  uip_setethaddr(mac);
+  uip_setethaddr((*mac));
   enc28j60SpiInit();
-  enc28j60InitWithCs((uint8_t *)&mac, 8);
+  enc28j60InitWithCs(macaddr, 8);
   enc28j60clkout(2); // change clkout from 6.25MHz to 12.5MHz
   delay(10);
   timer_set(&periodic_timer, CLOCK_SECOND / 2);

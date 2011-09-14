@@ -212,12 +212,12 @@ void enc28j60SpiInit() {
 }
 
 // Single parameter init
-void enc28j60Init(uint8_t* macaddr)
+void enc28j60Init(const uint8_t* macaddr)
 {
         enc28j60InitWithCs(macaddr, DEFAULT_ENC28J60_CONTROL_CS );
 }
 
-void enc28j60InitWithCs( uint8_t* macaddr, uint8_t csPin )
+void enc28j60InitWithCs( const uint8_t* macaddr, uint8_t csPin )
 {
 	// initialize I/O
         enc28j60ControlCs = csPin; 

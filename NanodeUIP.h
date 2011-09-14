@@ -28,7 +28,7 @@ class NanodeUIP {
      initialised.   Call the init() function from your sketch instead. */
   NanodeUIP(void);
 
-  void init(void); // Call in setup()
+  void init(const byte *macaddr); // Call in setup()
   void poll(void); // Must be called regularly in your sketch's loop()
 
   /* Link status functions */
