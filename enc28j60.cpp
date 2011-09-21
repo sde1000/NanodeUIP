@@ -177,6 +177,7 @@ void enc28j60PhyWrite(uint8_t address, uint16_t data)
         }
 }
 
+#if 0
 static void enc28j60PhyWriteWord(byte address, word data) {
     enc28j60Write(MIREGADR, address);
     //enc28j60WriteByte(MIREGADR, address);
@@ -184,6 +185,7 @@ static void enc28j60PhyWriteWord(byte address, word data) {
     while (enc28j60ReadByte(MISTAT) & MISTAT_BUSY)
         ;
 }
+#endif
 
 void enc28j60clkout(uint8_t clk)
 {
@@ -348,11 +350,13 @@ void enc28j60PacketSend(uint16_t len, uint8_t* packet)
         // Reset the transmit logic problem. See Rev. B4 Silicon Errata point 12.
 }
 
+#if 0
 // just probe if there might be a packet
 uint8_t enc28j60hasRxPkt(void)
 {
        return enc28j60ReadByte(EPKTCNT) > 0;
 }
+#endif
 
 // Gets a packet from the network receive buffer, if one is available.
 // The packet will by headed by an ethernet header.

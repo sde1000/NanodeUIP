@@ -3,10 +3,8 @@
 
 #include <WProgram.h>
 
-extern "C" {
 #include "timer.h"
 extern void resolv_conf(const uint16_t *dnsserver);
-}
 
 #define DHCP_STATUS_OK 1
 #define DHCP_STATUS_DOWN 0

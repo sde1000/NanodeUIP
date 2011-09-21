@@ -3,22 +3,18 @@
 #include <WProgram.h>
 #include <inttypes.h>
 
-extern "C" {
-  #include "uip.h"
-  #include "uip_arp.h"
-  #include "enc28j60.h"
-  #include "dhcpc.h"
-  #include "hello-world.h"
-  #include "resolv.h"
-}
+#include "uip.h"
+#include "uip_arp.h"
+#include "enc28j60.h"
+#include "dhcpc.h"
+#include "hello-world.h"
+#include "resolv.h"
 
-extern "C" void nanode_log(char *msg);
+void nanode_log(char *msg);
 
 void nanode_log(char *msg) {
   Serial.println(msg);
 }
-
-extern "C" void dhcpc_configured(const struct dhcpc_state *s);
 
 void dhcpc_configured(const struct dhcpc_state *s) {
   uip_sethostaddr(s->ipaddr);
@@ -35,7 +31,7 @@ void dhcpc_configured(const struct dhcpc_state *s) {
   }
 }
 
-extern "C" void resolv_found(char *name, u16_t *ipaddr);
+void resolv_found(char *name, u16_t *ipaddr);
 
 void resolv_found(char *name, u16_t *ipaddr)
 {

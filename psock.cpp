@@ -173,7 +173,7 @@ data_acked(register struct psock *s)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-PT_THREAD(psock_send(register struct psock *s, const char *buf,
+PT_THREAD(psock_send(register struct psock *s, const u8_t *buf,
 		     unsigned int len))
 {
   PT_BEGIN(&s->psockpt);
@@ -225,7 +225,7 @@ PT_THREAD(psock_generator_send(register struct psock *s,
   /* Call the generator function to generate the data in the
      uip_appdata buffer. */
   s->sendlen = generate(arg);
-  s->sendptr = uip_appdata;
+  s->sendptr = (u8_t *)uip_appdata;
 
   s->state = STATE_NONE;  
   do {
@@ -269,7 +269,7 @@ psock_newdata(struct psock *s)
   }
 }
 /*---------------------------------------------------------------------------*/
-PT_THREAD(psock_readto(register struct psock *psock, unsigned char c))
+PT_THREAD(psock_readto(register struct psock *psock, u8_t c))
 {
   PT_BEGIN(&psock->psockpt);
 
@@ -325,7 +325,7 @@ PT_THREAD(psock_readbuf(register struct psock *psock))
 }
 /*---------------------------------------------------------------------------*/
 void
-psock_init(register struct psock *psock, char *buffer, unsigned int buffersize)
+psock_init(register struct psock *psock, u8_t *buffer, unsigned int buffersize)
 {
   psock->state = STATE_NONE;
   psock->readlen = 0;

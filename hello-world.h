@@ -22,6 +22,8 @@
 #ifndef __HELLO_WORLD_H__
 #define __HELLO_WORLD_H__
 
+#include <WProgram.h>
+
 /* Since this file will be included by uip.h, we cannot include uip.h
    here. But we might need to include uipopt.h if we need the u8_t and
    u16_t datatypes. */
@@ -31,7 +33,7 @@
 
 struct hello_world_state {
   struct psock p;
-  char inputbuffer[20];
+  byte inputbuffer[20];
   char name[20];
   char quest[20];
 };

@@ -61,7 +61,7 @@ hello_world_appcall(void)
    * the application state of the connection. We make a pointer to
    * this to access it easier.
    */
-  struct hello_world_state *s = &(uip_conn->appstate);
+  struct hello_world_state *s = (struct hello_world_state *)&(uip_conn->appstate);
 
   /*
    * If a new connection was just established, we should initialize
@@ -93,11 +93,11 @@ handle_connection(struct hello_world_state *s)
   PSOCK_SEND_STR(&s->p, "Hello. What is your name?\n>>> ");
   PSOCK_READTO(&s->p, '\n');
   s->inputbuffer[PSOCK_DATALEN(&s->p)]=0;
-  strncpy(s->name, s->inputbuffer, sizeof(s->name));
+  strncpy(s->name, (const char *)s->inputbuffer, sizeof(s->name));
   PSOCK_SEND_STR(&s->p, "What is your quest?\n>>> ");
   PSOCK_READTO(&s->p, '\n');
   s->inputbuffer[PSOCK_DATALEN(&s->p)]=0;
-  strncpy(s->quest, s->inputbuffer, sizeof(s->quest));
+  strncpy(s->quest, (const char *)s->inputbuffer, sizeof(s->quest));
   PSOCK_SEND_STR(&s->p, "Hello ");
   PSOCK_SEND_STR(&s->p, s->name);
   PSOCK_SEND_STR(&s->p, "Your quest is: ");

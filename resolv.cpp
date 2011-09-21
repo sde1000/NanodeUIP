@@ -98,7 +98,7 @@ struct dns_answer {
   /* DNS answer record starts with either a domain name or a pointer
      to a name already present somewhere in the packet. */
   u16_t type;
-  u16_t class;
+  u16_t dclass;
   u16_t ttl[2];
   u16_t len;
   uip_ipaddr_t ipaddr;
@@ -234,7 +234,7 @@ check_entries(void)
 static void
 newdata(void)
 {
-  char *nameptr;
+  unsigned char *nameptr;
   struct dns_answer *ans;
   struct dns_hdr *hdr;
   static u8_t nquestions, nanswers;
@@ -278,7 +278,7 @@ newdata(void)
     /* Skip the name in the question. XXX: This should really be
        checked agains the name in the question, to be sure that they
        match. */
-    nameptr = parse_name((char *)uip_appdata + 12) + 4;
+    nameptr = parse_name((unsigned char *)uip_appdata + 12) + 4;
 
     while(nanswers > 0) {
       /* The first byte in the answer resource record determines if it
@@ -289,18 +289,18 @@ newdata(void)
 	/*	printf("Compressed anwser\n");*/
       } else {
 	/* Not compressed name. */
-	nameptr = parse_name((char *)nameptr);
+	nameptr = parse_name((unsigned char *)nameptr);
       }
 
       ans = (struct dns_answer *)nameptr;
       /*      printf("Answer: type %x, class %x, ttl %x, length %x\n",
-	     htons(ans->type), htons(ans->class), (htons(ans->ttl[0])
+	     htons(ans->type), htons(ans->dclass), (htons(ans->ttl[0])
 	     << 16) | htons(ans->ttl[1]), htons(ans->len));*/
 
       /* Check for IP address type and Internet class. Others are
 	 discarded. */
       if(ans->type == HTONS(1) &&
-	 ans->class == HTONS(1) &&
+	 ans->dclass == HTONS(1) &&
 	 ans->len == HTONS(4)) {
 	/*	printf("IP address %d.%d.%d.%d\n",
 	       htons(ans->ipaddr[0]) >> 8,
@@ -437,11 +437,13 @@ resolv_getserver(void)
 void
 resolv_conf(const u16_t *dnsserver)
 {
+  uip_ipaddr_t da;
   if(resolv_conn != NULL) {
     uip_udp_remove(resolv_conn);
   }
-  
-  resolv_conn = uip_udp_new(dnsserver, HTONS(53),resolv_appcall);
+
+  uip_ipaddr_copy(&da,dnsserver);
+  resolv_conn = uip_udp_new(&da, HTONS(53),resolv_appcall);
 }
 /*---------------------------------------------------------------------------*/
 /**

@@ -339,7 +339,7 @@ dhcpc_init(const void *mac_addr, int mac_len)
 
   s.state = STATE_INITIAL;
   uip_ipaddr(&addr, 255,255,255,255);
-  s.conn = uip_udp_new(&addr, HTONS(DHCPC_SERVER_PORT),handle_dhcp);
+  s.conn = uip_udp_new(&addr, HTONS(DHCPC_SERVER_PORT),dhcpc_appcall);
   if(s.conn != NULL) {
     uip_udp_bind(s.conn, HTONS(DHCPC_CLIENT_PORT));
     PT_INIT(&s.pt);
