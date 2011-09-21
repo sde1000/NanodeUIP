@@ -1,7 +1,7 @@
 #include <NanodeUIP.h>
 #include <NanodeUNIO.h>
 
-void resolv_found(char *name,uint16_t *addr) {
+static void resolv_found(char *name,uint16_t *addr) {
   char buf[30]=": addr=";
   Serial.print(name);
   uip.format_ipaddr(buf+7,addr);
@@ -34,7 +34,6 @@ void setup() {
   Serial.println("Link is up");
   uip.init_resolv(resolv_found);
   uip.start_dhcp(dhcp_status);
-  uip.start_hello_world(1000);
   Serial.println("setup() done");
 }
 

@@ -2,6 +2,7 @@
 #define _NANODEUIP_LIB_H
 
 #include <WProgram.h>
+#include "uip.h"
 
 #include "timer.h"
 extern void resolv_conf(const uint16_t *dnsserver);
@@ -55,8 +56,6 @@ class NanodeUIP {
      so in the callback function when you're called with
      DHCP_STATUS_OK. */
   boolean start_dhcp(dhcp_status_fn *callback);
-
-  boolean start_hello_world(word port);
 
   /* Call this in setup() if you intend to use the resolver library. */
   void init_resolv(resolv_result_fn *callback);

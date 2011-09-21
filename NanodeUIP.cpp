@@ -125,10 +125,6 @@ boolean NanodeUIP::start_dhcp(dhcp_status_fn *callback) {
   return dhcpc_init(&uip_ethaddr,6);
 }
 
-boolean NanodeUIP::start_hello_world(word port) {
-  return hello_world_init(port);
-}
-
 void NanodeUIP::init_resolv(resolv_result_fn *callback) {
   resolv_status_callback=callback;
   resolv_init();
