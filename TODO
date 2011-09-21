@@ -1,0 +1,27 @@
+Here's my vague plan for further development:
+
+1) Get rid of the "listening" arrays for TCP and UDP - they are a
+waste of memory for something that's likely to be constant per sketch
+and better expressed as code in program memory space.  Replace with a
+function pointer.  We've a reasonable amount of stack space,
+hopefully, and the compiler should be doing the tail-call
+optimisation; when you register a new "listening" function, have it be
+responsible for calling the previous one if the incoming connection /
+packet isn't for us.
+
+2) Simplify the UDP code.  The idea of a UDP "connection" may be left
+over from someone who was used to thinking about sockets.  It's much
+easier to pass incoming packets along a chain if listening functions
+and see if anyone wants them.  Let any of these send UDP to wherever
+they like too; no need for memory to store a "connection".
+
+3) Separate DHCP and resolver out into separate modules - probably
+worth keeping them in this library, but make it so that they have to
+be invoked from the sketch.  Don't refer to them from NanodeUIP.cpp.
+
+4) Sort out datatypes.  The Arduino Wiring environment defines some
+perfectly good ones - byte, word, etc. - and we should be using these
+instead of rolling our own.
+
+5) Tidy up those awful comments!  Sure, the code to manual system is
+nifty but we're not using it here!

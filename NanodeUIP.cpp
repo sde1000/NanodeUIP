@@ -7,7 +7,6 @@
 #include "uip_arp.h"
 #include "enc28j60.h"
 #include "dhcpc.h"
-#include "hello-world.h"
 #include "resolv.h"
 
 void nanode_log(char *msg);
