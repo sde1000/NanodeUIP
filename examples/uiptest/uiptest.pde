@@ -28,7 +28,7 @@ void setup() {
   
   unio.read(macaddr,NANODE_MAC_ADDRESS,6);
   uip.init(macaddr);
-  uip.getMACstr(buf);
+  uip.get_mac_str(buf);
   Serial.println(buf);
   uip.wait_for_link();
   Serial.println("Link is up");
