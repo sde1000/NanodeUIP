@@ -1,6 +1,5 @@
 #include "NanodeUIP.h"
 
-#include <WProgram.h>
 #include <inttypes.h>
 
 #include "uip.h"
