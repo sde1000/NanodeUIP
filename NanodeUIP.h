@@ -1,10 +1,15 @@
 #ifndef _NANODEUIP_LIB_H
 #define _NANODEUIP_LIB_H
 
-#include <WProgram.h>
-#include "uip.h"
+#if ARDUINO >= 100
+  #include <Arduino.h> // Arduino 1.0
+#else
+  #include <WProgram.h> // Arduino 0022
+#endif
 
+#include "uip.h"
 #include "timer.h"
+
 extern void resolv_conf(const uint16_t *dnsserver);
 
 #define DHCP_STATUS_OK 1

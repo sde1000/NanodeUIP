@@ -21,7 +21,15 @@
 
 #ifndef ENC28J60_H
 #define ENC28J60_H
+
 #include <inttypes.h>
+
+#if ARDUINO >= 100
+  #include <Arduino.h> // Arduino 1.0
+#else
+  #include <WConstants.h> // Arduino 0022
+#endif
+
 
 // Default CS pin is 10, for the unmodified shield.
 // Can be changed in init function to use another pin

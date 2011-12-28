@@ -1,7 +1,11 @@
 #include "clock.h"
 #include "uip-conf.h"
 
-#include <WProgram.h>
+#if ARDUINO >= 100
+  #include <Arduino.h> // Arduino 1.0
+#else
+  #include <WProgram.h> // Arduino 0022
+#endif
 
 clock_time_t clock_time(void) {
   return millis();
