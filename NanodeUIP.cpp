@@ -48,8 +48,6 @@ NanodeUIP::NanodeUIP(void) {
 
 void NanodeUIP::init(const byte *macaddr) {
   const struct uip_eth_addr *mac=(struct uip_eth_addr *)macaddr;
-  uip_ipaddr_t ipaddr;
-  char buf[20];
 
   uip_setethaddr((*mac));
   enc28j60SpiInit();
