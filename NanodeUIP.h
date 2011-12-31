@@ -46,7 +46,7 @@ class NanodeUIP {
   void set_nameserver_addr(byte a, byte b, byte c, byte d);
 
   /* Output addresses to string buffers */
-  void getMACstr(char *buf); // buf must be at least 18 bytes
+  void get_mac_str(char *buf); // buf must be at least 18 bytes
   void format_ipaddr(char *buf, uint16_t *addr); // 16 byte buf
   void get_ip_addr_str(char *buf); // buf must be at least 16 bytes
   void get_netmask_str(char *buf); // buf must be at least 16 bytes

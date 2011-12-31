@@ -48,8 +48,6 @@ NanodeUIP::NanodeUIP(void) {
 
 void NanodeUIP::init(const byte *macaddr) {
   const struct uip_eth_addr *mac=(struct uip_eth_addr *)macaddr;
-  uip_ipaddr_t ipaddr;
-  char buf[20];
 
   uip_setethaddr((*mac));
   enc28j60SpiInit();
@@ -94,7 +92,7 @@ void NanodeUIP::set_nameserver_addr(byte a, byte b, byte c, byte d) {
 }  
 
 // Requires a buffer of at least 18 bytes to format into
-void NanodeUIP::getMACstr(char *buf) {
+void NanodeUIP::get_mac_str(char *buf) {
   sprintf(buf,"%02X:%02X:%02X:%02X:%02X:%02X",
 	  uip_ethaddr.addr[0], uip_ethaddr.addr[1], uip_ethaddr.addr[2],
 	  uip_ethaddr.addr[3], uip_ethaddr.addr[4], uip_ethaddr.addr[5]);
