@@ -49,14 +49,25 @@ struct ptentry {
 void
 parse(const register char *str, struct ptentry *t)
 {
-  struct ptentry *p;
-  for(p = t; p->commandstr != NULL; ++p) {
-    if(strncmp_P(str, p->commandstr, strlen_P(p->commandstr)) == 0) {
+  // RAM space to copy an entry down from progmem
+  struct ptentry entry;
+
+  // Copy down the first entry
+  memcpy_P(&entry,t,sizeof(entry));
+
+  // Keep looking at entries until the commandstr is empty
+  while ( entry.commandstr != NULL )
+  {
+    // If the command matches
+    if(strncmp_P(str, entry.commandstr, strlen_P(entry.commandstr)) == 0) {
+      // We've found our goal, stop!
       break;
     }
+    // Copy down the next entry
+    memcpy_P(&entry,++t,sizeof(entry));
   }
 
-  p->pfunc(str);
+  entry.pfunc(str);
 }
 
 extern char* __brkval;
@@ -103,7 +114,7 @@ const char exit_str_p[] PROGMEM = "exit";
 const char q_str_p[] PROGMEM = "?";
 const char mem_str_p[] PROGMEM = "mem";
 
-static struct ptentry parsetab[] =
+static struct ptentry parsetab[] PROGMEM =
   {{stats_str_p, help},
    {conn_str_p, help},
    {help_str_p, help},
