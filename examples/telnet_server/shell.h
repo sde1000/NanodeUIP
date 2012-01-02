@@ -75,7 +75,7 @@ void shell_input(char *command);
  * Quit the shell.
  *
  */
-void shell_quit(char *);
+void shell_quit(const char *);
 
 
 /**

@@ -36,10 +36,9 @@
 #include "NanodeUIP.h"
 #include "shell.h"
 
-
 struct ptentry {
-  const char *commandstr;
-  void (* pfunc)(char *str);
+  PGM_P commandstr;
+  void (* pfunc)(const char *str);
 };
 
 #ifndef SHELL_PROMPT
@@ -47,12 +46,12 @@ struct ptentry {
 #endif
 
 /*---------------------------------------------------------------------------*/
-static void
-parse(register char *str, struct ptentry *t)
+void
+parse(const register char *str, struct ptentry *t)
 {
   struct ptentry *p;
   for(p = t; p->commandstr != NULL; ++p) {
-    if(strncmp(p->commandstr, str, strlen(p->commandstr)) == 0) {
+    if(strncmp_P(str, p->commandstr, strlen_P(p->commandstr)) == 0) {
       break;
     }
   }
@@ -66,7 +65,7 @@ extern int errno;
 
 /*---------------------------------------------------------------------------*/
 static void
-show_memory(char *str)
+show_memory(const char *str)
 {
   char buf[25];
   sprintf_P(buf,PSTR("SP = 0x%x"),SP);
@@ -79,7 +78,7 @@ show_memory(char *str)
 
 /*---------------------------------------------------------------------------*/
 static void
-help(char *str)
+help(const char *)
 {
   // TEXT HERE CAN ONLY BE 40 chars / output! based on telnetd.h 
   shell_output_P(PSTR("Available commands:"), NULL);
@@ -89,22 +88,29 @@ help(char *str)
 }
 /*---------------------------------------------------------------------------*/
 static void
-unknown(char *str)
+unknown_command(const char *str)
 {
   if(strlen(str) > 0) {
     shell_output("Unknown command: ", str);
-	*str = 0;
   }
 }
 /*---------------------------------------------------------------------------*/
+
+const char stats_str_p[] PROGMEM = "stats";
+const char conn_str_p[] PROGMEM = "conn";
+const char help_str_p[] PROGMEM = "help";
+const char exit_str_p[] PROGMEM = "exit";
+const char q_str_p[] PROGMEM = "?";
+const char mem_str_p[] PROGMEM = "mem";
+
 static struct ptentry parsetab[] =
-  {{"stats", help},
-   {"conn", help},
-   {"help", help},
-   {"exit", shell_quit},
-   {"?", help},
-   {"mem", show_memory},
-   {NULL, unknown}};
+  {{stats_str_p, help},
+   {conn_str_p, help},
+   {help_str_p, help},
+   {exit_str_p, shell_quit},
+   {q_str_p, help},
+   {mem_str_p, show_memory},
+   {NULL, unknown_command}};
 /*---------------------------------------------------------------------------*/
 void
 shell_init(void)
@@ -114,8 +120,8 @@ shell_init(void)
 void
 shell_start(void)
 {
-  shell_output_P(PSTR("uIP command shell"), PSTR(""));
-  shell_output_P(PSTR("Type '?' and return for help"), PSTR(""));
+  shell_output_P(PSTR("uIP command shell"), NULL);
+  shell_output_P(PSTR("Type '?' and return for help"), NULL);
   shell_prompt(SHELL_PROMPT);
 }
 /*---------------------------------------------------------------------------*/

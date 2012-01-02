@@ -81,7 +81,7 @@ dealloc_line(char *line)
 }
 /*---------------------------------------------------------------------------*/
 void
-shell_quit(char *)
+shell_quit(const char *)
 {
   s.state = STATE_CLOSE;
 }
