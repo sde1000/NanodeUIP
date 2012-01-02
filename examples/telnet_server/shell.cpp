@@ -289,3 +289,4 @@ shell_input(char *cmd)
   shell_prompt(SHELL_PROMPT);
 }
 /*---------------------------------------------------------------------------*/
+// vim:cin:ai:sts=2 sw=2 ft=cpp

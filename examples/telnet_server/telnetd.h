@@ -57,3 +57,4 @@ struct telnetd_state {
 };
 
 #endif /* __TELNETD_H__ */
+// vim:cin:ai:sts=2 sw=2 ft=cpp

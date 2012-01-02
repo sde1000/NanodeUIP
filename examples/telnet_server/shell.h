@@ -103,3 +103,4 @@ void shell_output_P(PGM_P str1, PGM_P str2);
 void shell_prompt(char *prompt);
 
 #endif /* __SHELL_H__ */
+// vim:cin:ai:sts=2 sw=2 ft=cpp

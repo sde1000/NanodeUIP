@@ -59,6 +59,7 @@ MEMB(linemem, struct telnetd_line, TELNETD_CONF_NUMLINES);
 #define STATE_DONT   5
 #define STATE_CLOSE  6
 
+// Static state is wasting space.  Should use the connection state.
 static struct telnetd_state s;
 
 #define TELNET_IAC   255
@@ -379,3 +380,4 @@ telnetd_appcall(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+// vim:cin:ai:sts=2 sw=2 ft=cpp
