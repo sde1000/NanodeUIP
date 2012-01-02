@@ -86,7 +86,6 @@ void enc28j60ReadBuffer(uint16_t len, uint8_t* data)
         *data++ = SPDR;
     }
     disableChip();
-    *data='\0';
 }
 
 static word enc28j60ReadBufferWord() {
