@@ -163,6 +163,30 @@ shell_output_P(PGM_P str1, PGM_P str2)
 }
 /*---------------------------------------------------------------------------*/
 void
+shell_output_P_1st(PGM_P str1, const char* str2)
+{
+  static unsigned len;
+  char *line;
+
+  line = alloc_line();
+  if(line != NULL) {
+    len = strlen_P(str1);
+    strncpy_P(line, str1, TELNETD_CONF_LINELEN);
+    if(str2 && len < TELNETD_CONF_LINELEN) {
+      strncpy(line + len, str2, TELNETD_CONF_LINELEN - len);
+    }
+    len = strlen(line);
+    if(len < TELNETD_CONF_LINELEN - 2) {
+      line[len] = ISO_cr;
+      line[len+1] = ISO_nl;
+      line[len+2] = 0;
+    }
+    /*    petsciiconv_toascii(line, TELNETD_CONF_LINELEN);*/
+    sendline(line);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
 telnetd_init(void)
 {
   uip_listen(HTONS(23),telnetd_appcall);

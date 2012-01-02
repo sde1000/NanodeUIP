@@ -102,7 +102,7 @@ static void
 unknown_command(const char *str)
 {
   if(strlen(str) > 0) {
-    shell_output("Unknown command: ", str);
+    shell_output_P_1st(PSTR("Unknown command: "), str);
   }
 }
 /*---------------------------------------------------------------------------*/

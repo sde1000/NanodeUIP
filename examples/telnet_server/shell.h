@@ -90,6 +90,7 @@ void shell_quit(const char *);
  */
 void shell_output(const char *str1, const char *str2);
 void shell_output_P(PGM_P str1, PGM_P str2);
+void shell_output_P_1st(PGM_P str1, const char* str2);
 
 /**
  * Print a prompt to the shell window.
