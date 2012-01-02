@@ -103,12 +103,24 @@ sendline(char *line)
 }
 /*---------------------------------------------------------------------------*/
 void
-shell_prompt(char *str)
+shell_prompt(const char *str)
 {
   char *line;
   line = alloc_line();
   if(line != NULL) {
     strncpy(line, str, TELNETD_CONF_LINELEN);
+    /*    petsciiconv_toascii(line, TELNETD_CONF_LINELEN);*/
+    sendline(line);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+shell_prompt_P(PGM_P str)
+{
+  char *line;
+  line = alloc_line();
+  if(line != NULL) {
+    strncpy_P(line, str, TELNETD_CONF_LINELEN);
     /*    petsciiconv_toascii(line, TELNETD_CONF_LINELEN);*/
     sendline(line);
   }

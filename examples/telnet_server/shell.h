@@ -101,7 +101,8 @@ void shell_output_P_1st(PGM_P str1, const char* str2);
  * \param prompt The prompt to be printed.
  *
  */
-void shell_prompt(char *prompt);
+void shell_prompt(const char *prompt);
+void shell_prompt_P(PGM_P prompt);
 
 #endif /* __SHELL_H__ */
 // vim:cin:ai:sts=2 sw=2 ft=cpp

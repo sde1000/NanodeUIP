@@ -133,14 +133,14 @@ shell_start(void)
 {
   shell_output_P(PSTR("uIP command shell"), NULL);
   shell_output_P(PSTR("Type '?' and return for help"), NULL);
-  shell_prompt(SHELL_PROMPT);
+  shell_prompt_P(PSTR(SHELL_PROMPT));
 }
 /*---------------------------------------------------------------------------*/
 void
 shell_input(char *cmd)
 {
   parse(cmd, parsetab);
-  shell_prompt(SHELL_PROMPT);
+  shell_prompt_P(PSTR(SHELL_PROMPT));
 }
 /*---------------------------------------------------------------------------*/
 // vim:cin:ai:sts=2 sw=2 ft=cpp
