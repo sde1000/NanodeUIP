@@ -6,11 +6,14 @@
 #else
   #include <WProgram.h> // Arduino 0022
 #endif
+#include <avr/pgmspace.h>
 
 #include "uip.h"
 #include "timer.h"
 
 extern void resolv_conf(const uint16_t *dnsserver);
+extern void nanode_log(char *msg);
+extern void nanode_log_P(PGM_P msg);
 
 #define DHCP_STATUS_OK 1
 #define DHCP_STATUS_DOWN 0

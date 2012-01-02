@@ -94,10 +94,10 @@ void setup() {
   uip.get_mac_str(buf);
   Serial.println(buf);
   uip.wait_for_link();
-  printf_P(PSTR("Link is up\r\n"));
+  nanode_log_P(PSTR("Link is up"));
   uip.init_resolv(resolv_found);
   uip.start_dhcp(dhcp_status);
-  printf_P(PSTR("setup() done\r\n"));
+  nanode_log_P(PSTR("setup() done"));
 }
 
 void loop() {
