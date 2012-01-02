@@ -1,5 +1,7 @@
 #include "NanodeUIP.h"
 
+#include <avr/pgmspace.h>
+#include <stdio.h>
 #include <inttypes.h>
 
 #include "uip.h"
@@ -8,10 +10,13 @@
 #include "dhcpc.h"
 #include "resolv.h"
 
-void nanode_log(char *msg);
 
 void nanode_log(char *msg) {
   Serial.println(msg);
+}
+
+void nanode_log_P(PGM_P msg) {
+  printf_P(PSTR("%lu: %S\r\n"),millis(),msg);
 }
 
 void dhcpc_configured(const struct dhcpc_state *s) {
