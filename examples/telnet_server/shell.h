@@ -88,7 +88,7 @@ void shell_quit(char *);
  * \param str1 The first half of the string to be output.
  * \param str2 The second half of the string to be output.
  */
-void shell_output(char *str1, char *str2);
+void shell_output(const char *str1, const char *str2);
 void shell_output_P(PGM_P str1, PGM_P str2);
 
 /**

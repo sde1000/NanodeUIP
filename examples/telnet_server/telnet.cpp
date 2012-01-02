@@ -115,7 +115,7 @@ shell_prompt(char *str)
 }
 /*---------------------------------------------------------------------------*/
 void
-shell_output(char *str1, char *str2)
+shell_output(const char *str1, const char *str2)
 {
   static unsigned len;
   char *line;
@@ -124,7 +124,7 @@ shell_output(char *str1, char *str2)
   if(line != NULL) {
     len = strlen(str1);
     strncpy(line, str1, TELNETD_CONF_LINELEN);
-    if(len < TELNETD_CONF_LINELEN) {
+    if(str2 && len < TELNETD_CONF_LINELEN) {
       strncpy(line + len, str2, TELNETD_CONF_LINELEN - len);
     }
     len = strlen(line);
@@ -148,7 +148,7 @@ shell_output_P(PGM_P str1, PGM_P str2)
   if(line != NULL) {
     len = strlen_P(str1);
     strncpy_P(line, str1, TELNETD_CONF_LINELEN);
-    if(len < TELNETD_CONF_LINELEN) {
+    if(str2 && len < TELNETD_CONF_LINELEN) {
       strncpy_P(line + len, str2, TELNETD_CONF_LINELEN - len);
     }
     len = strlen(line);
