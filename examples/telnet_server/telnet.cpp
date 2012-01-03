@@ -36,20 +36,11 @@
 #include "Arduino.h"
 #include "telnetd.h"
 #include "shell.h"
-extern "C"
-{
-#include "memb.h"
-}
 
 #include <string.h>
 
 #define ISO_nl       0x0a
 #define ISO_cr       0x0d
-
-struct telnetd_line {
-  char line[TELNETD_CONF_LINELEN];
-};
-MEMB(linemem, struct telnetd_line, TELNETD_CONF_NUMLINES);
 
 #define STATE_NORMAL 0
 #define STATE_IAC    1
@@ -59,7 +50,6 @@ MEMB(linemem, struct telnetd_line, TELNETD_CONF_NUMLINES);
 #define STATE_DONT   5
 #define STATE_CLOSE  6
 
-// Static state is wasting space.  Should use the connection state.
 static struct telnetd_state* ps;
 
 #define TELNET_IAC   255
@@ -71,13 +61,13 @@ static struct telnetd_state* ps;
 static char *
 alloc_line(void)
 {
-  return reinterpret_cast<char*>(memb_alloc(&linemem));
+  return reinterpret_cast<char*>(memb_alloc(&(ps->linemem)));
 }
 /*---------------------------------------------------------------------------*/
 static void
 dealloc_line(char *line)
 {
-  memb_free(&linemem, line);
+  memb_free(&(ps->linemem), line);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -202,7 +192,6 @@ void
 telnetd_init(void)
 {
   uip_listen(HTONS(23),telnetd_appcall);
-  memb_init(&linemem);
   shell_init();
 }
 /*---------------------------------------------------------------------------*/
@@ -384,6 +373,12 @@ telnetd_appcall(void)
     }
     ps->bufptr = 0;
     ps->state = STATE_NORMAL;
+
+    ps->linemem.size = sizeof(telnetd_line);
+    ps->linemem.num = TELNETD_CONF_NUMLINES;
+    ps->linemem.count = ps->linemem_memb_count;
+    ps->linemem.mem = ps->linemem_memb_mem;
+    memb_init(&(ps->linemem));
 
     shell_start();
   }

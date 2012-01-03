@@ -36,17 +36,26 @@
 #define __TELNETD_H__
 
 #include "uipopt.h"
+extern "C"
+{
+#include "memb.h"
+}
 
 void telnetd_appcall(void);
 void telnetd_init(void);
 
+// Be sure to adjust TCP_APP_STATE_SIZE if you change any of these! 
 #ifndef TELNETD_CONF_LINELEN
-#define TELNETD_CONF_LINELEN 40
+#define TELNETD_CONF_LINELEN 30
 #endif
 #ifndef TELNETD_CONF_NUMLINES
 // orig value #define TELNETD_CONF_NUMLINES 16
-#define TELNETD_CONF_NUMLINES 8
+#define TELNETD_CONF_NUMLINES 5
 #endif
+
+struct telnetd_line {
+  char line[TELNETD_CONF_LINELEN];
+};
 
 struct telnetd_state {
   char *lines[TELNETD_CONF_NUMLINES];
@@ -54,6 +63,10 @@ struct telnetd_state {
   u8_t bufptr;
   u8_t numsent;
   u8_t state;
+
+  char linemem_memb_count[TELNETD_CONF_NUMLINES];
+  telnetd_line linemem_memb_mem[TELNETD_CONF_NUMLINES];
+  memb_blocks linemem;
 };
 
 #endif /* __TELNETD_H__ */

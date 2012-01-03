@@ -91,7 +91,7 @@ show_memory(const char *str)
 static void
 help(const char *)
 {
-  // TEXT HERE CAN ONLY BE 40 chars / output! based on telnetd.h 
+  // TEXT HERE CAN ONLY BE 30 chars / output! based on telnetd.h 
   shell_output_P(PSTR("Available commands:"), NULL);
   shell_output_P(PSTR("help, ? - show help"), NULL);
   shell_output_P(PSTR("exit    - exit shell"), NULL);
