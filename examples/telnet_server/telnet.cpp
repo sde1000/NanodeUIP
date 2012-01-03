@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, Adam Dunkels.
+ * Copyright (c) 2003, Adam Dunkelps->
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ MEMB(linemem, struct telnetd_line, TELNETD_CONF_NUMLINES);
 #define STATE_CLOSE  6
 
 // Static state is wasting space.  Should use the connection state.
-static struct telnetd_state s;
+static struct telnetd_state* ps;
 
 #define TELNET_IAC   255
 #define TELNET_WILL  251
@@ -83,7 +83,7 @@ dealloc_line(char *line)
 void
 shell_quit(const char *)
 {
-  s.state = STATE_CLOSE;
+  ps->state = STATE_CLOSE;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -92,8 +92,8 @@ sendline(char *line)
   static unsigned int i;
   
   for(i = 0; i < TELNETD_CONF_NUMLINES; ++i) {
-    if(s.lines[i] == NULL) {
-      s.lines[i] = line;
+    if(ps->lines[i] == NULL) {
+      ps->lines[i] = line;
       break;
     }
   }
@@ -211,13 +211,13 @@ acked(void)
 {
   static unsigned int i;
   
-  while(s.numsent > 0) {
-    dealloc_line(s.lines[0]);
+  while(ps->numsent > 0) {
+    dealloc_line(ps->lines[0]);
     for(i = 1; i < TELNETD_CONF_NUMLINES; ++i) {
-      s.lines[i - 1] = s.lines[i];
+      ps->lines[i - 1] = ps->lines[i];
     }
-    s.lines[TELNETD_CONF_NUMLINES - 1] = NULL;
-    --s.numsent;
+    ps->lines[TELNETD_CONF_NUMLINES - 1] = NULL;
+    --ps->numsent;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -229,9 +229,9 @@ senddata(void)
   
   bufptr = reinterpret_cast<char*>(uip_appdata);
   buflen = 0;
-  for(s.numsent = 0; s.numsent < TELNETD_CONF_NUMLINES &&
-	s.lines[s.numsent] != NULL ; ++s.numsent) {
-    lineptr = s.lines[s.numsent];
+  for(ps->numsent = 0; ps->numsent < TELNETD_CONF_NUMLINES &&
+	ps->lines[ps->numsent] != NULL ; ++ps->numsent) {
+    lineptr = ps->lines[ps->numsent];
     linelen = strlen(lineptr);
     if(linelen > TELNETD_CONF_LINELEN) {
       linelen = TELNETD_CONF_LINELEN;
@@ -253,8 +253,8 @@ closed(void)
   static unsigned int i;
   
   for(i = 0; i < TELNETD_CONF_NUMLINES; ++i) {
-    if(s.lines[i] != NULL) {
-      dealloc_line(s.lines[i]);
+    if(ps->lines[i] != NULL) {
+      dealloc_line(ps->lines[i]);
     }
   }
 }
@@ -266,20 +266,20 @@ get_char(u8_t c)
     return;
   }
   
-  s.buf[(int)s.bufptr] = c;
-  if(s.buf[(int)s.bufptr] == ISO_nl ||
-     s.bufptr == sizeof(s.buf) - 1) {
-    if(s.bufptr > 0) {
-      s.buf[(int)s.bufptr] = 0;
-      /*      petsciiconv_topetscii(s.buf, TELNETD_CONF_LINELEN);*/
+  ps->buf[(int)ps->bufptr] = c;
+  if(ps->buf[(int)ps->bufptr] == ISO_nl ||
+     ps->bufptr == sizeof(ps->buf) - 1) {
+    if(ps->bufptr > 0) {
+      ps->buf[(int)ps->bufptr] = 0;
+      /*      petsciiconv_topetscii(ps->buf, TELNETD_CONF_LINELEN);*/
     }
-	if((s.bufptr + 1) < sizeof(s.buf)) {
-		s.buf[(int)s.bufptr +1] = 0;
+	if((ps->bufptr + 1) < sizeof(ps->buf)) {
+		ps->buf[(int)ps->bufptr +1] = 0;
 	}
-    shell_input(s.buf);
-    s.bufptr = 0;
+    shell_input(ps->buf);
+    ps->bufptr = 0;
   } else {
-    ++s.bufptr;
+    ++ps->bufptr;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -308,31 +308,31 @@ newdata(void)
   len = uip_datalen();
   dataptr = (char *)uip_appdata;
   
-  while(len > 0 && s.bufptr < sizeof(s.buf)) {
+  while(len > 0 && ps->bufptr < sizeof(ps->buf)) {
     c = *dataptr;
     ++dataptr;
     --len;
-    switch(s.state) {
+    switch(ps->state) {
     case STATE_IAC:
       if(c == TELNET_IAC) {
 	get_char(c);
-	s.state = STATE_NORMAL;
+	ps->state = STATE_NORMAL;
       } else {
 	switch(c) {
 	case TELNET_WILL:
-	  s.state = STATE_WILL;
+	  ps->state = STATE_WILL;
 	  break;
 	case TELNET_WONT:
-	  s.state = STATE_WONT;
+	  ps->state = STATE_WONT;
 	  break;
 	case TELNET_DO:
-	  s.state = STATE_DO;
+	  ps->state = STATE_DO;
 	  break;
 	case TELNET_DONT:
-	  s.state = STATE_DONT;
+	  ps->state = STATE_DONT;
 	  break;
 	default:
-	  s.state = STATE_NORMAL;
+	  ps->state = STATE_NORMAL;
 	  break;
 	}
       }
@@ -340,27 +340,27 @@ newdata(void)
     case STATE_WILL:
       /* Reply with a DONT */
       sendopt(TELNET_DONT, c);
-      s.state = STATE_NORMAL;
+      ps->state = STATE_NORMAL;
       break;
       
     case STATE_WONT:
       /* Reply with a DONT */
       sendopt(TELNET_DONT, c);
-      s.state = STATE_NORMAL;
+      ps->state = STATE_NORMAL;
       break;
     case STATE_DO:
       /* Reply with a WONT */
       sendopt(TELNET_WONT, c);
-      s.state = STATE_NORMAL;
+      ps->state = STATE_NORMAL;
       break;
     case STATE_DONT:
       /* Reply with a WONT */
       sendopt(TELNET_WONT, c);
-      s.state = STATE_NORMAL;
+      ps->state = STATE_NORMAL;
       break;
     case STATE_NORMAL:
       if(c == TELNET_IAC) {
-	s.state = STATE_IAC;
+	ps->state = STATE_IAC;
       } else {
 	get_char(c);
       }
@@ -375,20 +375,21 @@ newdata(void)
 void
 telnetd_appcall(void)
 {
+  ps = reinterpret_cast<telnetd_state *>(&(uip_conn->appstate));
   static unsigned int i;
   if(uip_connected()) {
     /*    tcp_markconn(uip_conn, &s);*/
     for(i = 0; i < TELNETD_CONF_NUMLINES; ++i) {
-      s.lines[i] = NULL;
+      ps->lines[i] = NULL;
     }
-    s.bufptr = 0;
-    s.state = STATE_NORMAL;
+    ps->bufptr = 0;
+    ps->state = STATE_NORMAL;
 
     shell_start();
   }
 
-  if(s.state == STATE_CLOSE) {
-    s.state = STATE_NORMAL;
+  if(ps->state == STATE_CLOSE) {
+    ps->state = STATE_NORMAL;
     uip_close();
     return;
   }
@@ -414,6 +415,7 @@ telnetd_appcall(void)
      uip_poll()) {
     senddata();
   }
+  ps = NULL;
 }
 /*---------------------------------------------------------------------------*/
 // vim:cin:ai:sts=2 sw=2 ft=cpp
