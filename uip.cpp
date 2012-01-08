@@ -682,6 +682,8 @@ void
 uip_process(u8_t flag)
 {
   register struct uip_conn *uip_connr = uip_conn;
+  /* Whether this packet was sliced (truncated) by the network layer */
+  uint8_t packet_sliced = 0;
 
 #if UIP_UDP
   if(flag == UIP_UDP_SEND_CONN) {
@@ -875,7 +877,8 @@ uip_process(u8_t flag)
 #endif /* UIP_CONF_IPV6 */
   } else {
     UIP_LOG("ip: packet shorter than reported in IP header.");
-    goto drop;
+    packet_sliced = 1;
+    UIP_LOG("Assuming it was sliced by the network layer.");
   }
 
 #if !UIP_CONF_IPV6
@@ -956,7 +959,10 @@ uip_process(u8_t flag)
     UIP_STAT(++uip_stat.ip.drop);
     UIP_STAT(++uip_stat.ip.chkerr);
     UIP_LOG("ip: bad checksum.");
-    goto drop;
+    if (packet_sliced)
+      UIP_LOG("Ignoring because packet was sliced.");
+    else
+      goto drop;
   }
 #endif /* UIP_CONF_IPV6 */
 
@@ -1107,7 +1113,10 @@ uip_process(u8_t flag)
     UIP_STAT(++uip_stat.udp.drop);
     UIP_STAT(++uip_stat.udp.chkerr);
     UIP_LOG("udp: bad checksum.");
-    goto drop;
+    if (packet_sliced)
+      UIP_LOG("Ignoring because packet was sliced.");
+    else
+      goto drop;
   }
 #else /* UIP_UDP_CHECKSUMS */
   uip_len = uip_len - UIP_IPUDPH_LEN;
