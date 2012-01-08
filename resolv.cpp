@@ -198,9 +198,9 @@ check_entries(void)
       }
       hdr = (struct dns_hdr *)uip_appdata;
       memset(hdr, 0, sizeof(struct dns_hdr));
-      hdr->id = htons(i);
+      hdr->id = uip_htons(i);
       hdr->flags1 = DNS_FLAG1_RD;
-      hdr->numquestions = HTONS(1);
+      hdr->numquestions = UIP_HTONS(1);
       query = (char *)uip_appdata + 12;
       nameptr = namemapptr->name;
       --nameptr;
@@ -242,19 +242,19 @@ newdata(void)
   register struct namemap *namemapptr;
   
   hdr = (struct dns_hdr *)uip_appdata;
-  /*  printf("ID %d\n", htons(hdr->id));
+  /*  printf("ID %d\n", uip_htons(hdr->id));
       printf("Query %d\n", hdr->flags1 & DNS_FLAG1_RESPONSE);
       printf("Error %d\n", hdr->flags2 & DNS_FLAG2_ERR_MASK);
       printf("Num questions %d, answers %d, authrr %d, extrarr %d\n",
-      htons(hdr->numquestions),
-      htons(hdr->numanswers),
-      htons(hdr->numauthrr),
-      htons(hdr->numextrarr));
+      uip_htons(hdr->numquestions),
+      uip_htons(hdr->numanswers),
+      uip_htons(hdr->numauthrr),
+      uip_htons(hdr->numextrarr));
   */
 
   /* The ID in the DNS header should be our entry into the name
      table. */
-  i = htons(hdr->id);
+  i = uip_htons(hdr->id);
   namemapptr = &names[i];
   if(i < RESOLV_ENTRIES &&
      namemapptr->state == STATE_ASKING) {
@@ -272,8 +272,8 @@ newdata(void)
 
     /* We only care about the question(s) and the answers. The authrr
        and the extrarr are simply discarded. */
-    nquestions = htons(hdr->numquestions);
-    nanswers = htons(hdr->numanswers);
+    nquestions = uip_htons(hdr->numquestions);
+    nanswers = uip_htons(hdr->numanswers);
 
     /* Skip the name in the question. XXX: This should really be
        checked agains the name in the question, to be sure that they
@@ -294,19 +294,19 @@ newdata(void)
 
       ans = (struct dns_answer *)nameptr;
       /*      printf("Answer: type %x, class %x, ttl %x, length %x\n",
-	     htons(ans->type), htons(ans->dclass), (htons(ans->ttl[0])
-	     << 16) | htons(ans->ttl[1]), htons(ans->len));*/
+	     uip_htons(ans->type), uip_htons(ans->dclass), (uip_htons(ans->ttl[0])
+	     << 16) | uip_htons(ans->ttl[1]), uip_htons(ans->len));*/
 
       /* Check for IP address type and Internet class. Others are
 	 discarded. */
-      if(ans->type == HTONS(1) &&
-	 ans->dclass == HTONS(1) &&
-	 ans->len == HTONS(4)) {
+      if(ans->type == UIP_HTONS(1) &&
+	 ans->dclass == UIP_HTONS(1) &&
+	 ans->len == UIP_HTONS(4)) {
 	/*	printf("IP address %d.%d.%d.%d\n",
-	       htons(ans->ipaddr[0]) >> 8,
-	       htons(ans->ipaddr[0]) & 0xff,
-	       htons(ans->ipaddr[1]) >> 8,
-	       htons(ans->ipaddr[1]) & 0xff);*/
+	       uip_htons(ans->ipaddr[0]) >> 8,
+	       uip_htons(ans->ipaddr[0]) & 0xff,
+	       uip_htons(ans->ipaddr[1]) >> 8,
+	       uip_htons(ans->ipaddr[1]) & 0xff);*/
 	/* XXX: we should really check that this IP address is the one
 	   we want. */
 	namemapptr->ipaddr[0] = ans->ipaddr[0];
@@ -315,7 +315,7 @@ newdata(void)
 	resolv_found(namemapptr->name, namemapptr->ipaddr);
 	return;
       } else {
-	nameptr = nameptr + 10 + htons(ans->len);
+	nameptr = nameptr + 10 + uip_htons(ans->len);
       }
       --nanswers;
     }
@@ -330,7 +330,7 @@ newdata(void)
 void
 resolv_appcall(void)
 {
-  if(uip_udp_conn->rport == HTONS(53)) {
+  if(uip_udp_conn->rport == UIP_HTONS(53)) {
     if(uip_poll()) {
       check_entries();
     }
@@ -443,7 +443,7 @@ resolv_conf(const u16_t *dnsserver)
   }
 
   uip_ipaddr_copy(&da,dnsserver);
-  resolv_conn = uip_udp_new(&da, HTONS(53),resolv_appcall);
+  resolv_conn = uip_udp_new(&da, UIP_HTONS(53),resolv_appcall);
 }
 /*---------------------------------------------------------------------------*/
 /**

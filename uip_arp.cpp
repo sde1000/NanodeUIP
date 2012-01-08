@@ -285,7 +285,7 @@ uip_arp_arpin(void)
   uip_len = 0;
   
   switch(BUF->opcode) {
-  case HTONS(ARP_REQUEST):
+  case UIP_HTONS(ARP_REQUEST):
     /* ARP request. If it asked for our address, we send out a
        reply. */
     if(uip_ipaddr_cmp(BUF->dipaddr, uip_hostaddr)) {
@@ -295,7 +295,7 @@ uip_arp_arpin(void)
       uip_arp_update(BUF->sipaddr, &BUF->shwaddr);
       
       /* The reply opcode is 2. */
-      BUF->opcode = HTONS(2);
+      BUF->opcode = UIP_HTONS(2);
 
       memcpy(BUF->dhwaddr.addr, BUF->shwaddr.addr, 6);
       memcpy(BUF->shwaddr.addr, uip_ethaddr.addr, 6);
@@ -307,11 +307,11 @@ uip_arp_arpin(void)
       BUF->sipaddr[0] = uip_hostaddr[0];
       BUF->sipaddr[1] = uip_hostaddr[1];
 
-      BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
+      BUF->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_ARP);
       uip_len = sizeof(struct arp_hdr);
     }
     break;
-  case HTONS(ARP_REPLY):
+  case UIP_HTONS(ARP_REPLY):
     /* ARP reply. We insert or update the ARP table if it was meant
        for us. */
     if(uip_ipaddr_cmp(BUF->dipaddr, uip_hostaddr)) {
@@ -395,12 +395,12 @@ uip_arp_out(void)
     
       uip_ipaddr_copy(BUF->dipaddr, ipaddr);
       uip_ipaddr_copy(BUF->sipaddr, uip_hostaddr);
-      BUF->opcode = HTONS(ARP_REQUEST); /* ARP request. */
-      BUF->hwtype = HTONS(ARP_HWTYPE_ETH);
-      BUF->protocol = HTONS(UIP_ETHTYPE_IP);
+      BUF->opcode = UIP_HTONS(ARP_REQUEST); /* ARP request. */
+      BUF->hwtype = UIP_HTONS(ARP_HWTYPE_ETH);
+      BUF->protocol = UIP_HTONS(UIP_ETHTYPE_IP);
       BUF->hwlen = 6;
       BUF->protolen = 4;
-      BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
+      BUF->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_ARP);
 
       uip_appdata = &uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN];
     
@@ -413,7 +413,7 @@ uip_arp_out(void)
   }
   memcpy(IPBUF->ethhdr.src.addr, uip_ethaddr.addr, 6);
   
-  IPBUF->ethhdr.type = HTONS(UIP_ETHTYPE_IP);
+  IPBUF->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_IP);
 
   uip_len += sizeof(struct uip_eth_hdr);
 }

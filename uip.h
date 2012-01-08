@@ -237,14 +237,14 @@ void uip_setipid(u16_t id);
   #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
   uip_len = ethernet_devicedrver_poll();
   if(uip_len > 0) {
-    if(BUF->type == HTONS(UIP_ETHTYPE_IP)) {
+    if(BUF->type == UIP_HTONS(UIP_ETHTYPE_IP)) {
       uip_arp_ipin();
       uip_input();
       if(uip_len > 0) {
         uip_arp_out();
 	ethernet_devicedriver_send();
       }
-    } else if(BUF->type == HTONS(UIP_ETHTYPE_ARP)) {
+    } else if(BUF->type == UIP_HTONS(UIP_ETHTYPE_ARP)) {
       uip_arp_arpin();
       if(uip_len > 0) {
 	ethernet_devicedriver_send();
@@ -439,10 +439,10 @@ extern u8_t uip_buf[UIP_BUFSIZE+2];
  * Start listening to the specified port.
  *
  * \note Since this function expects the port number in network byte
- * order, a conversion using HTONS() or htons() is necessary.
+ * order, a conversion using UIP_HTONS() or uip_htons() is necessary.
  *
  \code
- uip_listen(HTONS(80));
+ uip_listen(UIP_HTONS(80));
  \endcode
  *
  * \param port A 16-bit port number in network byte order.
@@ -453,10 +453,10 @@ int uip_listen(u16_t port, tcp_appcall_fn *app);
  * Stop listening to the specified port.
  *
  * \note Since this function expects the port number in network byte
- * order, a conversion using HTONS() or htons() is necessary.
+ * order, a conversion using UIP_HTONS() or uip_htons() is necessary.
  *
  \code
- uip_unlisten(HTONS(80));
+ uip_unlisten(UIP_HTONS(80));
  \endcode
  *
  * \param port A 16-bit port number in network byte order.
@@ -478,13 +478,13 @@ void uip_unlisten(u16_t port);
  * has been configured by defining UIP_ACTIVE_OPEN to 1 in uipopt.h.
  *
  * \note Since this function requires the port number to be in network
- * byte order, a conversion using HTONS() or htons() is necessary.
+ * byte order, a conversion using UIP_HTONS() or uip_htons() is necessary.
  *
  \code
  uip_ipaddr_t ipaddr;
 
  uip_ipaddr(&ipaddr, 192,168,1,2);
- uip_connect(&ipaddr, HTONS(80));
+ uip_connect(&ipaddr, UIP_HTONS(80));
  \endcode
  *
  * \param ripaddr The IP address of the remote hot.
@@ -751,9 +751,9 @@ void uip_send(const void *data, int len);
  struct uip_udp_conn *c;
  
  uip_ipaddr(&addr, 192,168,2,1);
- c = uip_udp_new(&addr, HTONS(12345));
+ c = uip_udp_new(&addr, UIP_HTONS(12345));
  if(c != NULL) {
-   uip_udp_bind(c, HTONS(12344));
+   uip_udp_bind(c, UIP_HTONS(12344));
  }
  \endcode
  * \param ripaddr The IP address of the remote host.
@@ -825,7 +825,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  struct uip_conn *c;
  
  uip_ipaddr(&ipaddr, 192,168,1,2);
- c = uip_connect(&ipaddr, HTONS(80));
+ c = uip_connect(&ipaddr, UIP_HTONS(80));
  \endcode
  *
  * \param addr A pointer to a uip_ipaddr_t variable that will be
@@ -839,8 +839,8 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  * \hideinitializer
  */
 #define uip_ipaddr(addr, addr0,addr1,addr2,addr3) do { \
-                     ((u16_t *)(addr))[0] = HTONS(((addr0) << 8) | (addr1)); \
-                     ((u16_t *)(addr))[1] = HTONS(((addr2) << 8) | (addr3)); \
+                     ((u16_t *)(addr))[0] = UIP_HTONS(((addr0) << 8) | (addr1)); \
+                     ((u16_t *)(addr))[1] = UIP_HTONS(((addr2) << 8) | (addr3)); \
                   } while(0)
 
 /**
@@ -851,14 +851,14 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  * \hideinitializer
  */
 #define uip_ip6addr(addr, addr0,addr1,addr2,addr3,addr4,addr5,addr6,addr7) do { \
-                     ((u16_t *)(addr))[0] = HTONS((addr0)); \
-                     ((u16_t *)(addr))[1] = HTONS((addr1)); \
-                     ((u16_t *)(addr))[2] = HTONS((addr2)); \
-                     ((u16_t *)(addr))[3] = HTONS((addr3)); \
-                     ((u16_t *)(addr))[4] = HTONS((addr4)); \
-                     ((u16_t *)(addr))[5] = HTONS((addr5)); \
-                     ((u16_t *)(addr))[6] = HTONS((addr6)); \
-                     ((u16_t *)(addr))[7] = HTONS((addr7)); \
+                     ((u16_t *)(addr))[0] = UIP_HTONS((addr0)); \
+                     ((u16_t *)(addr))[1] = UIP_HTONS((addr1)); \
+                     ((u16_t *)(addr))[2] = UIP_HTONS((addr2)); \
+                     ((u16_t *)(addr))[3] = UIP_HTONS((addr3)); \
+                     ((u16_t *)(addr))[4] = UIP_HTONS((addr4)); \
+                     ((u16_t *)(addr))[5] = UIP_HTONS((addr5)); \
+                     ((u16_t *)(addr))[6] = UIP_HTONS((addr6)); \
+                     ((u16_t *)(addr))[7] = UIP_HTONS((addr7)); \
                   } while(0)
 
 /**
@@ -993,7 +993,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr1(addr) (htons(((u16_t *)(addr))[0]) >> 8)
+#define uip_ipaddr1(addr) (uip_htons(((u16_t *)(addr))[0]) >> 8)
 
 /**
  * Pick the second octet of an IP address.
@@ -1013,7 +1013,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr2(addr) (htons(((u16_t *)(addr))[0]) & 0xff)
+#define uip_ipaddr2(addr) (uip_htons(((u16_t *)(addr))[0]) & 0xff)
 
 /**
  * Pick the third octet of an IP address.
@@ -1033,7 +1033,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr3(addr) (htons(((u16_t *)(addr))[1]) >> 8)
+#define uip_ipaddr3(addr) (uip_htons(((u16_t *)(addr))[1]) >> 8)
 
 /**
  * Pick the fourth octet of an IP address.
@@ -1053,39 +1053,39 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr4(addr) (htons(((u16_t *)(addr))[1]) & 0xff)
+#define uip_ipaddr4(addr) (uip_htons(((u16_t *)(addr))[1]) & 0xff)
 
 /**
  * Convert 16-bit quantity from host byte order to network byte order.
  *
  * This macro is primarily used for converting constants from host
  * byte order to network byte order. For converting variables to
- * network byte order, use the htons() function instead.
+ * network byte order, use the uip_htons() function instead.
  *
  * \hideinitializer
  */
-#ifndef HTONS
+#ifndef UIP_HTONS
 #   if UIP_BYTE_ORDER == UIP_BIG_ENDIAN
-#      define HTONS(n) (n)
+#      define UIP_HTONS(n) (n)
 #   else /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
-#      define HTONS(n) (u16_t)((((u16_t) (n)) << 8) | (((u16_t) (n)) >> 8))
+#      define UIP_HTONS(n) (u16_t)((((u16_t) (n)) << 8) | (((u16_t) (n)) >> 8))
 #   endif /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
 #else
-#error "HTONS already defined!"
-#endif /* HTONS */
+#error "UIP_HTONS already defined!"
+#endif /* UIP_HTONS */
 
 /**
  * Convert 16-bit quantity from host byte order to network byte order.
  *
  * This function is primarily used for converting variables from host
  * byte order to network byte order. For converting constants to
- * network byte order, use the HTONS() macro instead.
+ * network byte order, use the UIP_HTONS() macro instead.
  */
-#ifndef htons
-u16_t htons(u16_t val);
-#endif /* htons */
+#ifndef uip_htons
+u16_t uip_htons(u16_t val);
+#endif /* uip_htons */
 #ifndef ntohs
-#define ntohs htons
+#define ntohs uip_htons
 #endif
 
 /** @} */

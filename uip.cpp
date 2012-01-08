@@ -98,14 +98,14 @@
    here. Otherwise, the address */
 #if UIP_FIXEDADDR > 0
 const uip_ipaddr_t uip_hostaddr =
-  {HTONS((UIP_IPADDR0 << 8) | UIP_IPADDR1),
-   HTONS((UIP_IPADDR2 << 8) | UIP_IPADDR3)};
+  {UIP_HTONS((UIP_IPADDR0 << 8) | UIP_IPADDR1),
+   UIP_HTONS((UIP_IPADDR2 << 8) | UIP_IPADDR3)};
 const uip_ipaddr_t uip_draddr =
-  {HTONS((UIP_DRIPADDR0 << 8) | UIP_DRIPADDR1),
-   HTONS((UIP_DRIPADDR2 << 8) | UIP_DRIPADDR3)};
+  {UIP_HTONS((UIP_DRIPADDR0 << 8) | UIP_DRIPADDR1),
+   UIP_HTONS((UIP_DRIPADDR2 << 8) | UIP_DRIPADDR3)};
 const uip_ipaddr_t uip_netmask =
-  {HTONS((UIP_NETMASK0 << 8) | UIP_NETMASK1),
-   HTONS((UIP_NETMASK2 << 8) | UIP_NETMASK3)};
+  {UIP_HTONS((UIP_NETMASK0 << 8) | UIP_NETMASK1),
+   UIP_HTONS((UIP_NETMASK2 << 8) | UIP_NETMASK3)};
 #else
 uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
 #endif /* UIP_FIXEDADDR */
@@ -313,7 +313,7 @@ chksum(u16_t sum, const u8_t *data, u16_t len)
 u16_t
 uip_chksum(u16_t *data, u16_t len)
 {
-  return htons(chksum(0, (u8_t *)data, len));
+  return uip_htons(chksum(0, (u8_t *)data, len));
 }
 /*---------------------------------------------------------------------------*/
 #ifndef UIP_ARCH_IPCHKSUM
@@ -324,7 +324,7 @@ uip_ipchksum(void)
 
   sum = chksum(0, &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN);
   DEBUG_PRINTF("uip_ipchksum: sum 0x%04x\n", sum);
-  return (sum == 0) ? 0xffff : htons(sum);
+  return (sum == 0) ? 0xffff : uip_htons(sum);
 }
 #endif
 /*---------------------------------------------------------------------------*/
@@ -351,7 +351,7 @@ upper_layer_chksum(u8_t proto)
   sum = chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN],
 	       upper_layer_len);
     
-  return (sum == 0) ? 0xffff : htons(sum);
+  return (sum == 0) ? 0xffff : uip_htons(sum);
 }
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_IPV6
@@ -424,7 +424,7 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport, tcp_appcall_fn *app)
   for(c = 0; c < UIP_CONNS; ++c) {
     conn = &uip_conns[c];
     if(conn->tcpstateflags != UIP_CLOSED &&
-       conn->lport == htons(lastport)) {
+       conn->lport == uip_htons(lastport)) {
       goto again;
     }
   }
@@ -464,7 +464,7 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport, tcp_appcall_fn *app)
   conn->rto = UIP_RTO;
   conn->sa = 0;
   conn->sv = 16;   /* Initial value of the RTT variance. */
-  conn->lport = htons(lastport);
+  conn->lport = uip_htons(lastport);
   conn->rport = rport;
   uip_ipaddr_copy(&conn->ripaddr, ripaddr);
   
@@ -487,7 +487,7 @@ uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport, udp_appcall_fn *app)
   }
   
   for(c = 0; c < UIP_UDP_CONNS; ++c) {
-    if(uip_udp_conns[c].lport == htons(lastport)) {
+    if(uip_udp_conns[c].lport == uip_htons(lastport)) {
       goto again;
     }
   }
@@ -505,7 +505,7 @@ uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport, udp_appcall_fn *app)
     return 0;
   }
   
-  conn->lport = HTONS(lastport);
+  conn->lport = UIP_HTONS(lastport);
   conn->rport = rport;
   conn->appcall = app;
   if(ripaddr == NULL) {
@@ -936,7 +936,7 @@ uip_process(u8_t flag)
        address) as well. However, we will cheat here and accept all
        multicast packets that are sent to the ff02::/16 addresses. */
     if(!uip_ipaddr_cmp(BUF->destipaddr, uip_hostaddr) &&
-       BUF->destipaddr[0] != HTONS(0xff02)) {
+       BUF->destipaddr[0] != UIP_HTONS(0xff02)) {
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
     }
@@ -1002,10 +1002,10 @@ uip_process(u8_t flag)
 
   ICMPBUF->type = ICMP_ECHO_REPLY;
 
-  if(ICMPBUF->icmpchksum >= HTONS(0xffff - (ICMP_ECHO << 8))) {
-    ICMPBUF->icmpchksum += HTONS(ICMP_ECHO << 8) + 1;
+  if(ICMPBUF->icmpchksum >= UIP_HTONS(0xffff - (ICMP_ECHO << 8))) {
+    ICMPBUF->icmpchksum += UIP_HTONS(ICMP_ECHO << 8) + 1;
   } else {
-    ICMPBUF->icmpchksum += HTONS(ICMP_ECHO << 8);
+    ICMPBUF->icmpchksum += UIP_HTONS(ICMP_ECHO << 8);
   }
 
   /* Swap IP addresses. */
@@ -1154,7 +1154,7 @@ uip_process(u8_t flag)
   BUF->ttl = uip_udp_conn->ttl;
   BUF->proto = UIP_PROTO_UDP;
 
-  UDPBUF->udplen = HTONS(uip_slen + UIP_UDPH_LEN);
+  UDPBUF->udplen = UIP_HTONS(uip_slen + UIP_UDPH_LEN);
   UDPBUF->udpchksum = 0;
 
   BUF->srcport  = uip_udp_conn->lport;
@@ -1890,9 +1890,9 @@ uip_process(u8_t flag)
 }
 /*---------------------------------------------------------------------------*/
 u16_t
-htons(u16_t val)
+uip_htons(u16_t val)
 {
-  return HTONS(val);
+  return UIP_HTONS(val);
 }
 /*---------------------------------------------------------------------------*/
 void

@@ -151,7 +151,7 @@ create_msg(register struct dhcp_msg *m)
   // We request a broadcast response because otherwise the reply would have
   // our new IP address as the destination - and since we don't know that
   // yet, the UIP input processing code would discard it.
-  m->flags = HTONS(BOOTP_BROADCAST); /*  Broadcast bit. */
+  m->flags = UIP_HTONS(BOOTP_BROADCAST); /*  Broadcast bit. */
   /*  uip_ipaddr_copy(m->ciaddr, uip_hostaddr);*/
   memcpy(m->ciaddr, uip_hostaddr, sizeof(m->ciaddr));
   memset(m->yiaddr, 0, sizeof(m->yiaddr));
@@ -339,9 +339,9 @@ dhcpc_init(const void *mac_addr, int mac_len)
 
   s.state = STATE_INITIAL;
   uip_ipaddr(&addr, 255,255,255,255);
-  s.conn = uip_udp_new(&addr, HTONS(DHCPC_SERVER_PORT),dhcpc_appcall);
+  s.conn = uip_udp_new(&addr, UIP_HTONS(DHCPC_SERVER_PORT),dhcpc_appcall);
   if(s.conn != NULL) {
-    uip_udp_bind(s.conn, HTONS(DHCPC_CLIENT_PORT));
+    uip_udp_bind(s.conn, UIP_HTONS(DHCPC_CLIENT_PORT));
     PT_INIT(&s.pt);
     return 1;
   }
