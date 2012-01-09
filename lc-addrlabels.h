@@ -79,5 +79,4 @@ typedef void * lc_t;
 #define LC_END(s)
 
 #endif /* __LC_ADDRLABELS_H__ */
-
-/**  @} */
+/** @} */

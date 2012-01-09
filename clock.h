@@ -1,16 +1,18 @@
 /**
- * \defgroup clock Clock interface
+ * \defgroup clock Clock library
  *
- * The clock interface is the interface between the \ref timer "timer library"
- * and the platform specific clock functionality. The clock
- * interface must be implemented for each platform that uses the \ref
- * timer "timer library".
+ * The clock library is the interface between Contiki and the platform
+ * specific clock functionality. The clock library performs a single
+ * function: measuring time. Additionally, the clock library provides
+ * a macro, CLOCK_SECOND, which corresponds to one second of system
+ * time.
  *
- * The clock interface does only one this: it measures time. The clock
- * interface provides a macro, CLOCK_SECOND, which corresponds to one
- * second of system time.
+ * \note The clock library need in many cases not be used
+ * directly. Rather, the \ref timer "timer library" or the \ref etimer
+ * "event timers" should be used.
  *
  * \sa \ref timer "Timer library"
+ * \sa \ref etimer "Event timers"
  *
  * @{
  */
@@ -72,6 +74,8 @@ void clock_init(void);
  */
 clock_time_t clock_time(void);
 
+void clock_delay(unsigned int);
+
 /**
  * A second, measured in system clock time.
  *
@@ -83,6 +87,13 @@ clock_time_t clock_time(void);
 #define CLOCK_SECOND (clock_time_t)32
 #endif
 
+int clock_fine_max(void);
+unsigned short clock_fine(void);
+
+unsigned long clock_seconds(void);
+
+
 #endif /* __CLOCK_H__ */
 
+/** @} */
 /** @} */
