@@ -67,6 +67,7 @@
 #define UIP_BIG_ENDIAN     1234
 #endif /* UIP_BIG_ENDIAN */
 
+#include <avr/pgmspace.h>
 #include "uip-conf.h"
 
 /*------------------------------------------------------------------------------*/
@@ -439,6 +440,7 @@
  * is called by uIP whenever a log message is generated.
  */
 void uip_log(char *msg);
+void uip_log_P(PGM_P msg);
 
 /**
  * The link level header length.

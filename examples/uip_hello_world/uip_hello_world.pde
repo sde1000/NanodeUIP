@@ -1,6 +1,7 @@
 #include <NanodeUNIO.h>
 #include <NanodeUIP.h>
 #include <psock.h>
+#include "printf.h"
 
 struct hello_world_state {
   struct psock p;
@@ -85,17 +86,18 @@ void setup() {
   NanodeUNIO unio(NANODE_MAC_DEVICE);
 
   Serial.begin(38400);
-  Serial.println("UIP test");
+  printf_begin();
+  printf_P(PSTR(__FILE__"\r\n"));
   
   unio.read(macaddr,NANODE_MAC_ADDRESS,6);
   uip.init(macaddr);
   uip.get_mac_str(buf);
   Serial.println(buf);
   uip.wait_for_link();
-  Serial.println("Link is up");
+  nanode_log_P(PSTR("Link is up"));
   uip.init_resolv(resolv_found);
   uip.start_dhcp(dhcp_status);
-  Serial.println("setup() done");
+  nanode_log_P(PSTR("setup() done"));
 }
 
 void loop() {
