@@ -743,6 +743,7 @@ uip_process(u8_t flag)
       /* If the connection has outstanding data, we increase the
 	 connection's timer and see if it has reached the RTO value
 	 in which case we retransmit. */
+
       if(uip_outstanding(uip_connr)) {
 	if(uip_connr->timer-- == 0) {
 	  if(uip_connr->nrtx == UIP_MAXRTX ||
@@ -1220,8 +1221,8 @@ uip_process(u8_t flag)
   
   /* No matching connection found, so we send a RST packet. */
   UIP_STAT(++uip_stat.tcp.synrst);
- reset:
 
+ reset:
   /* We do not send resets in response to resets. */
   if(BUF->flags & TCP_RST) {
     goto drop;
@@ -1404,7 +1405,7 @@ uip_process(u8_t flag)
     UIP_APPCALL();
     goto drop;
   }
-  /* Calculated the length of the data, if the application has sent
+  /* Calculate the length of the data, if the application has sent
      any data to us. */
   c = (BUF->tcpoffset >> 4) << 2;
   /* uip_len will contain the length of the actual TCP data. This is
@@ -1443,7 +1444,6 @@ uip_process(u8_t flag)
       uip_connr->snd_nxt[2] = uip_acc32[2];
       uip_connr->snd_nxt[3] = uip_acc32[3];
 	
-
       /* Do RTT estimation, unless we have done retransmissions. */
       if(uip_connr->nrtx == 0) {
 	signed char m;
@@ -1796,20 +1796,22 @@ uip_process(u8_t flag)
   }
   goto drop;
   
-
   /* We jump here when we are ready to send the packet, and just want
      to set the appropriate TCP sequence numbers in the TCP header. */
  tcp_send_ack:
   BUF->flags = TCP_ACK;
+  
  tcp_send_nodata:
   uip_len = UIP_IPTCPH_LEN;
+
  tcp_send_noopts:
   BUF->tcpoffset = (UIP_TCPH_LEN / 4) << 4;
- tcp_send:
+
   /* We're done with the input processing. We are now ready to send a
      reply. Our job is to fill in all the fields of the TCP and IP
      headers before calculating the checksum and finally send the
      packet. */
+ tcp_send:
   BUF->ackno[0] = uip_connr->rcv_nxt[0];
   BUF->ackno[1] = uip_connr->rcv_nxt[1];
   BUF->ackno[2] = uip_connr->rcv_nxt[2];
@@ -1836,7 +1838,7 @@ uip_process(u8_t flag)
     BUF->wnd[0] = ((UIP_RECEIVE_WINDOW) >> 8);
     BUF->wnd[1] = ((UIP_RECEIVE_WINDOW) & 0xff);
   }
-
+  
  tcp_send_noconn:
   BUF->ttl = UIP_TTL;
 #if UIP_CONF_IPV6
@@ -1854,9 +1856,8 @@ uip_process(u8_t flag)
   /* Calculate TCP checksum. */
   BUF->tcpchksum = 0;
   BUF->tcpchksum = ~(uip_tcpchksum());
-  
- ip_send_nolen:
 
+ ip_send_nolen:
 #if UIP_CONF_IPV6
   BUF->vtc = 0x60;
   BUF->tcflow = 0x00;
@@ -1872,8 +1873,7 @@ uip_process(u8_t flag)
   BUF->ipchksum = 0;
   BUF->ipchksum = ~(uip_ipchksum());
   DEBUG_PRINTF("uip ip_send_nolen: chkecum 0x%04x\n", uip_ipchksum());
-#endif /* UIP_CONF_IPV6 */
-   
+#endif /* UIP_CONF_IPV6 */   
   UIP_STAT(++uip_stat.tcp.sent);
  send:
   DEBUG_PRINTF("Sending packet with length %d (%d)\n", uip_len,
@@ -1883,6 +1883,7 @@ uip_process(u8_t flag)
   /* Return and let the caller do the actual transmission. */
   uip_flags = 0;
   return;
+
  drop:
   uip_len = 0;
   uip_flags = 0;
@@ -1894,6 +1895,7 @@ uip_htons(u16_t val)
 {
   return UIP_HTONS(val);
 }
+
 /*---------------------------------------------------------------------------*/
 void
 uip_send(const void *data, int len)
@@ -1905,4 +1907,5 @@ uip_send(const void *data, int len)
     }
   }
 }
+/*---------------------------------------------------------------------------*/
 /** @} */
