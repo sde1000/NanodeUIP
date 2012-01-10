@@ -3,7 +3,7 @@
  * @{
  *
  * uIP is configured using the per-project configuration file
- * uipopt.h. This file contains all compile-time options for uIP and
+ * "uipopt.h". This file contains all compile-time options for uIP and
  * should be tweaked to match each specific project. The uIP
  * distribution contains a documented example "uipopt.h" that can be
  * copied and modified for each project.
@@ -72,18 +72,20 @@
 /*------------------------------------------------------------------------------*/
 
 /**
- * \name Static configuration options
+ * \defgroup uipoptstaticconf Static configuration options
  * @{
  *
  * These configuration options can be used for setting the IP address
  * settings statically, but only if UIP_FIXEDADDR is set to 1. The
  * configuration options for a specific node includes IP address,
  * netmask and default router as well as the Ethernet address. The
- * netmask, default router and Ethernet address are appliciable only
+ * netmask, default router and Ethernet address are applicable only
  * if uIP should be run over Ethernet.
  *
+ * This options are meaningful only for the IPv4 code.
+ *
  * All of these should be changed to suit your project.
-*/
+ */
 
 /**
  * Determines if uIP should use a fixed IP address or not.
@@ -97,7 +99,7 @@
 #define UIP_FIXEDADDR    0
 
 /**
- * Ping IP address asignment.
+ * Ping IP address assignment.
  *
  * uIP uses a "ping" packets for setting its own IP address if this
  * option is set. If so, uIP will start with an empty IP address and
@@ -129,7 +131,7 @@
 /** @} */
 /*------------------------------------------------------------------------------*/
 /**
- * \name IP configuration options
+ * \defgroup uipoptip IP configuration options
  * @{
  *
  */
@@ -144,7 +146,7 @@
  * Turn on support for IP packet reassembly.
  *
  * uIP supports reassembly of fragmented IP packets. This features
- * requires an additonal amount of RAM to hold the reassembly buffer
+ * requires an additional amount of RAM to hold the reassembly buffer
  * and the reassembly code size is approximately 700 bytes.  The
  * reassembly buffer is of the same size as the uip_buf buffer
  * (configured by UIP_BUFSIZE).
@@ -155,6 +157,7 @@
  */
 #define UIP_REASSEMBLY 0
 
+/*------------------------------------------------------------------------------*/
 /**
  * The maximum time an IP fragment should wait in the reassembly
  * buffer before it is dropped.
@@ -166,12 +169,17 @@
 
 /*------------------------------------------------------------------------------*/
 /**
- * \name UDP configuration options
+ * \defgroup uipoptudp UDP configuration options
  * @{
+ *
+ * \note The UDP support in uIP is still not entirely complete; there
+ * is no support for sending or receiving broadcast or multicast
+ * packets, but it works well enough to support a number of vital
+ * applications such as DNS queries, though
  */
 
 /**
- * Toggles wether UDP support should be compiled in or not.
+ * Toggles whether UDP support should be compiled in or not.
  *
  * \hideinitializer
  */
@@ -216,7 +224,7 @@
 /** @} */
 /*------------------------------------------------------------------------------*/
 /**
- * \name TCP configuration options
+ * \defgroup uipopttcp TCP configuration options
  * @{
  */
 
@@ -225,7 +233,7 @@
  * compiled in.
  *
  * If the applications that are running on top of uIP for this project
- * do not need to open outgoing TCP connections, this configration
+ * do not need to open outgoing TCP connections, this configuration
  * option can be turned off to reduce the code size of uIP.
  *
  * \hideinitializer
@@ -237,7 +245,7 @@
  *
  * Since the TCP connections are statically allocated, turning this
  * configuration knob down results in less RAM used. Each TCP
- * connection requires approximatly 30 bytes of memory.
+ * connection requires approximately 30 bytes of memory.
  *
  * \hideinitializer
  */
@@ -307,7 +315,7 @@
 /**
  * The size of the advertised receiver's window.
  *
- * Should be set low (i.e., to the size of the uip_buf buffer) is the
+ * Should be set low (i.e., to the size of the uip_buf buffer) if the
  * application is slow to process incoming data, or high (32768 bytes)
  * if the application processes data quickly.
  *
@@ -322,8 +330,7 @@
 /**
  * How long a connection should stay in the TIME_WAIT state.
  *
- * This configiration option has no real implication, and it should be
- * left untouched.
+ * This can be reduced for faster entry into power saving modes.
  */
 #define UIP_TIME_WAIT_TIMEOUT 120
 
@@ -331,7 +338,7 @@
 /** @} */
 /*------------------------------------------------------------------------------*/
 /**
- * \name ARP configuration options
+ * \defgroup uipoptarp ARP configuration options
  * @{
  */
 
@@ -350,7 +357,7 @@
 #endif
 
 /**
- * The maxium age of ARP table entries measured in 10ths of seconds.
+ * The maximum age of ARP table entries measured in 10ths of seconds.
  *
  * An UIP_ARP_MAXAGE of 120 corresponds to 20 minutes (BSD
  * default).
@@ -362,7 +369,7 @@
 /*------------------------------------------------------------------------------*/
 
 /**
- * \name General configuration options
+ * \defgroup uipoptgeneral General configuration options
  * @{
  */
 
@@ -370,7 +377,7 @@
  * The size of the uIP packet buffer.
  *
  * The uIP packet buffer should not be smaller than 60 bytes, and does
- * not need to be larger than 1500 bytes. Lower size results in lower
+ * not need to be larger than 1514 bytes. Lower size results in lower
  * TCP throughput, larger size results in higher TCP throughput.
  *
  * \hideinitializer
@@ -440,6 +447,11 @@ void uip_log(char *msg);
  * found. For Ethernet, this should be set to 14. For SLIP, this
  * should be set to 0.
  *
+ * \note we probably won't use this constant for other link layers than
+ * ethernet as they have variable header length (this is due to variable
+ * number and type of address fields and to optional security features)
+ * E.g.: 802.15.4 -> 2 + (1/2*4/8) + 0/5/6/10/14
+ *       802.11 -> 4 + (6*3/4) + 2
  * \hideinitializer
  */
 #ifdef UIP_CONF_LLH_LEN
@@ -451,7 +463,7 @@ void uip_log(char *msg);
 /** @} */
 /*------------------------------------------------------------------------------*/
 /**
- * \name CPU architecture configuration
+ * \defgroup uipoptcpu CPU architecture configuration
  * @{
  *
  * The CPU architecture configuration is where the endianess of the
@@ -464,8 +476,8 @@ void uip_log(char *msg);
 /**
  * The byte order of the CPU architecture on which uIP is to be run.
  *
- * This option can be either BIG_ENDIAN (Motorola byte order) or
- * LITTLE_ENDIAN (Intel byte order).
+ * This option can be either UIP_BIG_ENDIAN (Motorola byte order) or
+ * UIP_LITTLE_ENDIAN (Intel byte order).
  *
  * \hideinitializer
  */
@@ -479,7 +491,7 @@ void uip_log(char *msg);
 /*------------------------------------------------------------------------------*/
 
 /**
- * \name Appication specific configurations
+ * \defgroup uipoptapp Application specific configurations
  * @{
  *
  * An uIP application is implemented using a single application
@@ -534,6 +546,7 @@ typedef struct httpd_state uip_tcp_appstate_t
  * application state information.
  */
 /** @} */
-/** @} */
 
 #endif /* __UIPOPT_H__ */
+/** @} */
+/** @} */

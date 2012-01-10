@@ -7,6 +7,8 @@
   #include <WProgram.h> // Arduino 0022
 #endif
 
+void clock_init(void) {}
+
 clock_time_t clock_time(void) {
   return millis();
 }

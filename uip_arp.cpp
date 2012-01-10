@@ -16,7 +16,7 @@
  *
  * \note This ARP implementation only supports Ethernet.
  */
- 
+
 /**
  * \file
  * Implementation of the ARP Address Resolution Protocol.
@@ -115,6 +115,15 @@ static u8_t tmpage;
 
 #define BUF   ((struct arp_hdr *)&uip_buf[0])
 #define IPBUF ((struct ethip_hdr *)&uip_buf[0])
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*-----------------------------------------------------------------------------------*/
 /**
  * Initialize the ARP module.
@@ -125,7 +134,7 @@ void
 uip_arp_init(void)
 {
   for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
-    memset(arp_table[i].ipaddr, 0, 4);
+    memset(&arp_table[i].ipaddr, 0, 4);
   }
 }
 /*-----------------------------------------------------------------------------------*/
@@ -142,7 +151,7 @@ void
 uip_arp_timer(void)
 {
   struct arp_entry *tabptr;
-  
+
   ++arptime;
   for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
     tabptr = &arp_table[i];
@@ -153,17 +162,19 @@ uip_arp_timer(void)
   }
 
 }
+
 /*-----------------------------------------------------------------------------------*/
 static void
 uip_arp_update(u16_t *ipaddr, struct uip_eth_addr *ethaddr)
 {
-  register struct arp_entry *tabptr;
+  register struct arp_entry *tabptr = arp_table;
+
   /* Walk through the ARP mapping table and try to find an entry to
      update. If none is found, the IP -> MAC address mapping is
      inserted in the ARP table. */
   for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
-
     tabptr = &arp_table[i];
+
     /* Only check those entries that are actually in use. */
     if(tabptr->ipaddr[0] != 0 &&
        tabptr->ipaddr[1] != 0) {
@@ -172,7 +183,7 @@ uip_arp_update(u16_t *ipaddr, struct uip_eth_addr *ethaddr)
          the IP address in this ARP table entry. */
       if(ipaddr[0] == tabptr->ipaddr[0] &&
 	 ipaddr[1] == tabptr->ipaddr[1]) {
-	 
+
 	/* An old entry found, update this and return. */
 	memcpy(tabptr->ethaddr.addr, ethaddr->addr, 6);
 	tabptr->time = arptime;
@@ -180,6 +191,7 @@ uip_arp_update(u16_t *ipaddr, struct uip_eth_addr *ethaddr)
 	return;
       }
     }
+	tabptr++;
   }
 
   /* If we get here, no existing ARP table entry was found, so we
@@ -235,7 +247,7 @@ void
 uip_arp_ipin(void)
 {
   uip_len -= sizeof(struct uip_eth_hdr);
-	
+
   /* Only insert/update an entry if the source IP address of the
      incoming IP packet comes from a host on the local network. */
   if((IPBUF->srcipaddr[0] & uip_netmask[0]) !=
@@ -247,7 +259,7 @@ uip_arp_ipin(void)
     return;
   }
   uip_arp_update(IPBUF->srcipaddr, &(IPBUF->ethhdr.src));
-  
+
   return;
 }
 #endif /* 0 */
@@ -277,41 +289,47 @@ uip_arp_ipin(void)
 void
 uip_arp_arpin(void)
 {
-  
+
   if(uip_len < sizeof(struct arp_hdr)) {
     uip_len = 0;
     return;
   }
   uip_len = 0;
-  
+
   switch(BUF->opcode) {
-  case HTONS(ARP_REQUEST):
+  case UIP_HTONS(ARP_REQUEST):
     /* ARP request. If it asked for our address, we send out a
        reply. */
+    /*    if(BUF->dipaddr[0] == uip_hostaddr[0] &&
+	  BUF->dipaddr[1] == uip_hostaddr[1]) {*/
+    PRINTF("uip_arp_arpin: request for %d.%d.%d.%d (we are %d.%d.%d.%d)\n",
+	   BUF->dipaddr.u8[0], BUF->dipaddr.u8[1],
+	   BUF->dipaddr.u8[2], BUF->dipaddr.u8[3],
+	   uip_hostaddr.u8[0], uip_hostaddr.u8[1],
+	   uip_hostaddr.u8[2], uip_hostaddr.u8[3]);
     if(uip_ipaddr_cmp(BUF->dipaddr, uip_hostaddr)) {
       /* First, we register the one who made the request in our ARP
 	 table, since it is likely that we will do more communication
 	 with this host in the future. */
       uip_arp_update(BUF->sipaddr, &BUF->shwaddr);
-      
-      /* The reply opcode is 2. */
-      BUF->opcode = HTONS(2);
+
+      BUF->opcode = UIP_HTONS(ARP_REPLY);
 
       memcpy(BUF->dhwaddr.addr, BUF->shwaddr.addr, 6);
       memcpy(BUF->shwaddr.addr, uip_ethaddr.addr, 6);
       memcpy(BUF->ethhdr.src.addr, uip_ethaddr.addr, 6);
       memcpy(BUF->ethhdr.dest.addr, BUF->dhwaddr.addr, 6);
-      
+
       BUF->dipaddr[0] = BUF->sipaddr[0];
       BUF->dipaddr[1] = BUF->sipaddr[1];
       BUF->sipaddr[0] = uip_hostaddr[0];
       BUF->sipaddr[1] = uip_hostaddr[1];
 
-      BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
+      BUF->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_ARP);
       uip_len = sizeof(struct arp_hdr);
     }
     break;
-  case HTONS(ARP_REPLY):
+  case UIP_HTONS(ARP_REPLY):
     /* ARP reply. We insert or update the ARP table if it was meant
        for us. */
     if(uip_ipaddr_cmp(BUF->dipaddr, uip_hostaddr)) {
@@ -353,8 +371,8 @@ uip_arp_arpin(void)
 void
 uip_arp_out(void)
 {
-  struct arp_entry *tabptr;
-  
+  struct arp_entry *tabptr = arp_table;
+
   /* Find the destination IP address in the ARP table and construct
      the Ethernet header. If the destination IP addres isn't on the
      local network, we use the default router's IP address instead.
@@ -376,12 +394,11 @@ uip_arp_out(void)
       /* Else, we use the destination IP address. */
       uip_ipaddr_copy(ipaddr, IPBUF->destipaddr);
     }
-      
     for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
-      tabptr = &arp_table[i];
-      if(uip_ipaddr_cmp(ipaddr, tabptr->ipaddr)) {
+      if(uip_ipaddr_cmp(&ipaddr, &tabptr->ipaddr)) {
 	break;
       }
+	  tabptr++;
     }
 
     if(i == UIP_ARPTAB_SIZE) {
@@ -392,18 +409,18 @@ uip_arp_out(void)
       memset(BUF->dhwaddr.addr, 0x00, 6);
       memcpy(BUF->ethhdr.src.addr, uip_ethaddr.addr, 6);
       memcpy(BUF->shwaddr.addr, uip_ethaddr.addr, 6);
-    
+
       uip_ipaddr_copy(BUF->dipaddr, ipaddr);
       uip_ipaddr_copy(BUF->sipaddr, uip_hostaddr);
-      BUF->opcode = HTONS(ARP_REQUEST); /* ARP request. */
-      BUF->hwtype = HTONS(ARP_HWTYPE_ETH);
-      BUF->protocol = HTONS(UIP_ETHTYPE_IP);
+      BUF->opcode = UIP_HTONS(ARP_REQUEST); /* ARP request. */
+      BUF->hwtype = UIP_HTONS(ARP_HWTYPE_ETH);
+      BUF->protocol = UIP_HTONS(UIP_ETHTYPE_IP);
       BUF->hwlen = 6;
       BUF->protolen = 4;
-      BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
+      BUF->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_ARP);
 
       uip_appdata = &uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN];
-    
+
       uip_len = sizeof(struct arp_hdr);
       return;
     }
@@ -412,8 +429,8 @@ uip_arp_out(void)
     memcpy(IPBUF->ethhdr.dest.addr, tabptr->ethaddr.addr, 6);
   }
   memcpy(IPBUF->ethhdr.src.addr, uip_ethaddr.addr, 6);
-  
-  IPBUF->ethhdr.type = HTONS(UIP_ETHTYPE_IP);
+
+  IPBUF->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_IP);
 
   uip_len += sizeof(struct uip_eth_hdr);
 }
@@ -421,3 +438,4 @@ uip_arp_out(void)
 
 /** @} */
 /** @} */
+

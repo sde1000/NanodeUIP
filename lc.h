@@ -121,7 +121,7 @@
 
 #ifdef LC_CONF_INCLUDE
 #include LC_CONF_INCLUDE
-#else
+#else /* LC_CONF_INCLUDE */
 #include "lc-switch.h"
 #endif /* LC_CONF_INCLUDE */
 

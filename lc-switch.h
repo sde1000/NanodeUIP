@@ -40,14 +40,14 @@
 
 /**
  * \file
- * Implementation of local continuations based on switch() statment
+ * Implementation of local continuations based on switch() statement
  * \author Adam Dunkels <adam@sics.se>
  *
  * This implementation of local continuations uses the C switch()
  * statement to resume execution of a function somewhere inside the
  * function's body. The implementation is based on the fact that
  * switch() statements are able to jump directly into the bodies of
- * control structures such as if() or while() statmenets.
+ * control structures such as if() or while() statements.
  *
  * This implementation borrows heavily from Simon Tatham's coroutines
  * implementation in C:
@@ -55,7 +55,7 @@
  */
 
 #ifndef __LC_SWITCH_H__
-#define __LC_SWTICH_H__
+#define __LC_SWITCH_H__
 
 /* WARNING! lc implementation using switch() does not work if an
    LC_SET() is done within another switch() statement! */

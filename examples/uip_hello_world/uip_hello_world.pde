@@ -75,7 +75,7 @@ void dhcp_status(int s,const uint16_t *dnsaddr) {
     Serial.println(buf);
     uip.query_name("www.greenend.org.uk");
     // Start the "hello world" app defined earlier
-    uip_listen(HTONS(1000),hello_world_appcall);
+    uip_listen(UIP_HTONS(1000),hello_world_appcall);
   }
 }
 

@@ -59,6 +59,7 @@ void dhcpc_request(void);
 
 void dhcpc_appcall(void);
 
+/* Mandatory callbacks provided by the user. */
 void dhcpc_configured(const struct dhcpc_state *s);
 
 /* This doesn't appear to be used, and we don't want a copy of the

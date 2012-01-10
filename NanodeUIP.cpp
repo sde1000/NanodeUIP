@@ -93,14 +93,14 @@ void NanodeUIP::set_nameserver_addr(byte a, byte b, byte c, byte d) {
 
 // Requires a buffer of at least 18 bytes to format into
 void NanodeUIP::get_mac_str(char *buf) {
-  sprintf(buf,"%02X:%02X:%02X:%02X:%02X:%02X",
+  sprintf_P(buf,PSTR("%02X:%02X:%02X:%02X:%02X:%02X"),
 	  uip_ethaddr.addr[0], uip_ethaddr.addr[1], uip_ethaddr.addr[2],
 	  uip_ethaddr.addr[3], uip_ethaddr.addr[4], uip_ethaddr.addr[5]);
 }
 
 // Requires a buffer of at least 16 bytes to format into
 void NanodeUIP::format_ipaddr(char *buf,uint16_t *addr) {
-  sprintf(buf,"%d.%d.%d.%d",addr[0]&0xff,addr[0]>>8,
+  sprintf_P(buf,PSTR("%d.%d.%d.%d"),addr[0]&0xff,addr[0]>>8,
 	  addr[1]&0xff,addr[1]>>8);
 }
 
@@ -141,7 +141,7 @@ void NanodeUIP::poll(void) {
 
   uip_len = enc28j60PacketReceive(UIP_BUFSIZE,uip_buf);
   if(uip_len > 0) {
-    if(BUF->type == HTONS(UIP_ETHTYPE_IP)) {
+    if(BUF->type == UIP_HTONS(UIP_ETHTYPE_IP)) {
       uip_arp_ipin();
       uip_input();
       /* If the above function invocation resulted in data that
@@ -151,7 +151,7 @@ void NanodeUIP::poll(void) {
 	uip_arp_out();
 	enc28j60PacketSend(uip_len,uip_buf);
       }
-    } else if(BUF->type == HTONS(UIP_ETHTYPE_ARP)) {
+    } else if(BUF->type == UIP_HTONS(UIP_ETHTYPE_ARP)) {
       uip_arp_arpin();
       /* If the above function invocation resulted in data that
 	 should be sent out on the network, the global variable

@@ -92,7 +92,7 @@ void setup() {
   uip.wait_for_link();
   Serial.println("Link is up");
   uip.start_dhcp(dhcp_status);
-  uip_listen(HTONS(1000),macdump_appcall);
+  uip_listen(UIP_HTONS(1000),macdump_appcall);
   Serial.println("setup() done");
 }
 
