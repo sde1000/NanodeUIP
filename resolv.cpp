@@ -353,6 +353,7 @@ resolv_query(char *name)
   register struct namemap *nameptr;
       
   lseq = lseqi = 0;
+  nameptr = 0;                //compiler warning if not initialized
   
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
     nameptr = &names[i];
@@ -370,7 +371,7 @@ resolv_query(char *name)
     nameptr = &names[i];
   }
 
-  strcpy(nameptr->name, name);
+  strncpy(nameptr->name, name, sizeof(nameptr->name));
   nameptr->state = STATE_NEW;
   nameptr->seqno = seqno;
   ++seqno;
