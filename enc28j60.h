@@ -34,11 +34,14 @@
 // Default CS pin is 10, for the unmodified shield.
 // Can be changed in init function to use another pin
 // But SPI_SS needs to be setup correctly too
-#define DEFAULT_ENC28J60_CONTROL_CS             10
-#define SPI_SS                                  10
-#define SPI_MOSI				11
-#define SPI_MISO				12
-#define SPI_SCK					13
+//
+// This uses the Arduino-defined constants, so it will work with Mega or
+// any other board that puts the SPI control lines on other pins.
+#define DEFAULT_ENC28J60_CONTROL_CS             SS
+#define SPI_SS                                  SS
+#define SPI_MOSI				MOSI
+#define SPI_MISO				MISO
+#define SPI_SCK					SCK
 
 // ENC28J60 Control Registers
 // Control register definitions are a combination of address,
