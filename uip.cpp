@@ -1896,6 +1896,11 @@ uip_htons(u16_t val)
   return UIP_HTONS(val);
 }
 
+u32_t
+uip_htonl(u32_t val)
+{
+  return UIP_HTONL(val);
+}
 /*---------------------------------------------------------------------------*/
 void
 uip_send(const void *data, int len)

@@ -1066,8 +1066,10 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
 #ifndef UIP_HTONS
 #   if UIP_BYTE_ORDER == UIP_BIG_ENDIAN
 #      define UIP_HTONS(n) (n)
+#      define UIP_HTONL(n) (n)
 #   else /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
 #      define UIP_HTONS(n) (u16_t)((((u16_t) (n)) << 8) | (((u16_t) (n)) >> 8))
+#      define UIP_HTONL(n) (((u32_t)UIP_HTONS(n) << 16) | UIP_HTONS((u32_t)(n) >> 16))
 #   endif /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
 #else
 #error "UIP_HTONS already defined!"
@@ -1083,8 +1085,15 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
 #ifndef uip_htons
 u16_t uip_htons(u16_t val);
 #endif /* uip_htons */
-#ifndef ntohs
-#define ntohs uip_htons
+#ifndef uip_ntohs
+#define uip_ntohs uip_htons
+#endif
+
+#ifndef uip_htonl
+u32_t uip_htonl(u32_t val);
+#endif /* uip_htonl */
+#ifndef uip_ntohl
+#define uip_ntohl uip_htonl
 #endif
 
 /** @} */
