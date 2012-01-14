@@ -10,16 +10,16 @@
 #include "uip.h"
 #include "timer.h"
 
-extern void resolv_conf(const uint16_t *dnsserver);
+extern void resolv_conf(const uip_ipaddr_t *dnsserver);
 
 #define DHCP_STATUS_OK 1
 #define DHCP_STATUS_DOWN 0
 /* If called with DHCP_STATUS_OK, dnsaddr is the address discovered
    for the nameserver.  If you want to use the resolver library, call
    resolv_conf(dnsaddr) in your implementation of this callback. */
-typedef void dhcp_status_fn(int status,const uint16_t *dnsaddr);
+typedef void dhcp_status_fn(int status,const uip_ipaddr_t *dnsaddr);
 
-typedef void resolv_result_fn(char *name, uint16_t *addr);
+typedef void resolv_result_fn(char *name, uip_ipaddr_t *addr);
 
 class NanodeUIP {
  private:
@@ -47,7 +47,7 @@ class NanodeUIP {
 
   /* Output addresses to string buffers */
   void get_mac_str(char *buf); // buf must be at least 18 bytes
-  void format_ipaddr(char *buf, uint16_t *addr); // 16 byte buf
+  void format_ipaddr(char *buf, uip_ipaddr_t *addr); // 16 byte buf
   void get_ip_addr_str(char *buf); // buf must be at least 16 bytes
   void get_netmask_str(char *buf); // buf must be at least 16 bytes
   void get_gateway_str(char *buf); // buf must be at least 16 bytes
@@ -70,7 +70,7 @@ class NanodeUIP {
   void query_name(char *name);
   
   /* Return an address from the cache */
-  uint16_t *lookup_name(char *name);
+  uip_ipaddr_t *lookup_name(char *name);
 };
 
 extern NanodeUIP uip; // There can be only one!

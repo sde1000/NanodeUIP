@@ -69,7 +69,7 @@ static void macdump_appcall(void)
   macdump_connection(s);
 }
 
-void dhcp_status(int s,const uint16_t *dnsaddr) {
+void dhcp_status(int s,const uip_ipaddr_t *dnsaddr) {
   char buf[20]="IP:";
   if (s==DHCP_STATUS_OK) {
     uip.get_ip_addr_str(buf+3);

@@ -1,5 +1,5 @@
 /**
- * \addtogroup apps
+ * \addtogroup uip
  * @{
  */
 
@@ -101,7 +101,7 @@ struct dns_answer {
   u16_t dclass;
   u16_t ttl[2];
   u16_t len;
-  uip_ipaddr_t ipaddr;
+  u8_t ipaddr[4];
 };
 
 struct namemap {
@@ -303,16 +303,17 @@ newdata(void)
 	 ans->dclass == UIP_HTONS(1) &&
 	 ans->len == UIP_HTONS(4)) {
 	/*	printf("IP address %d.%d.%d.%d\n",
-	       uip_htons(ans->ipaddr[0]) >> 8,
-	       uip_htons(ans->ipaddr[0]) & 0xff,
-	       uip_htons(ans->ipaddr[1]) >> 8,
-	       uip_htons(ans->ipaddr[1]) & 0xff);*/
+	       ans->ipaddr[0],
+	       ans->ipaddr[1],
+	       ans->ipaddr[2],
+	       ans->ipaddr[3]);*/
 	/* XXX: we should really check that this IP address is the one
 	   we want. */
-	namemapptr->ipaddr[0] = ans->ipaddr[0];
-	namemapptr->ipaddr[1] = ans->ipaddr[1];
+        for(i = 0; i < 4; i++) {
+          namemapptr->ipaddr.u8[i] = ans->ipaddr[i];
+        }
 	
-	resolv_found(namemapptr->name, namemapptr->ipaddr);
+	resolv_found(namemapptr->name, &namemapptr->ipaddr);
 	return;
       } else {
 	nameptr = nameptr + 10 + uip_htons(ans->len);
@@ -390,7 +391,7 @@ resolv_query(char *name)
  * hostnames.
  */
 /*-----------------------------------------------------------------------------------*/
-u16_t *
+uip_ipaddr_t *
 resolv_lookup(char *name)
 {
   static u8_t i;
@@ -402,7 +403,7 @@ resolv_lookup(char *name)
     nameptr = &names[i];
     if(nameptr->state == STATE_DONE &&
        strcmp(name, nameptr->name) == 0) {
-      return nameptr->ipaddr;
+      return &nameptr->ipaddr;
     }
   }
   return NULL;
@@ -416,13 +417,13 @@ resolv_lookup(char *name)
  * been configured.
  */
 /*-----------------------------------------------------------------------------------*/
-u16_t *
+uip_ipaddr_t *
 resolv_getserver(void)
 {
   if(resolv_conn == NULL) {
     return NULL;
   }
-  return resolv_conn->ripaddr;
+  return &resolv_conn->ripaddr;
 }
 /*-----------------------------------------------------------------------------------*/
 /**
@@ -433,15 +434,15 @@ resolv_getserver(void)
  */
 /*-----------------------------------------------------------------------------------*/
 void
-resolv_conf(const u16_t *dnsserver)
+resolv_conf(const uip_ipaddr_t *dnsserver)
 {
-  uip_ipaddr_t da;
+  static uip_ipaddr_t server;
   if(resolv_conn != NULL) {
     uip_udp_remove(resolv_conn);
   }
 
-  uip_ipaddr_copy(&da,dnsserver);
-  resolv_conn = uip_udp_new(&da, UIP_HTONS(53),resolv_appcall);
+  uip_ipaddr_copy(&server, dnsserver);
+  resolv_conn = uip_udp_new(&server, UIP_HTONS(53),resolv_appcall);
 }
 /*-----------------------------------------------------------------------------------*/
 /**

@@ -46,7 +46,7 @@
 
 void resolv_appcall(void);
 
-#include "uipopt.h"
+#include "uip.h"
 
 /**
  * Callback function which is called when a hostname is found.
@@ -59,13 +59,13 @@ void resolv_appcall(void);
  * ipaddr A pointer to a 4-byte array containing the IP address of the
  * hostname, or NULL if the hostname could not be found.
  */
-void resolv_found(char *name, u16_t *ipaddr);
+void resolv_found(char *name, uip_ipaddr_t *ipaddr);
 
 /* Functions. */
-void resolv_conf(const u16_t *dnsserver);
-u16_t *resolv_getserver(void);
+void resolv_conf(const uip_ipaddr_t *dnsserver);
+uip_ipaddr_t *resolv_getserver(void);
 void resolv_init(void);
-u16_t *resolv_lookup(char *name);
+uip_ipaddr_t *resolv_lookup(char *name);
 void resolv_query(char *name);
 
 #endif /* __RESOLV_H__ */

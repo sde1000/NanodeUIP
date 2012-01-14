@@ -7,7 +7,9 @@
 /**
  * \file
  * Header file for the uIP TCP/IP stack.
- * \author Adam Dunkels <adam@dunkels.com>
+ * \author  Adam Dunkels <adam@dunkels.com>
+ * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
+ * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
  *
  * The uIP TCP/IP stack header file contains definitions for a number
  * of C macros that are used by uIP programs as well as internal uIP
@@ -58,11 +60,21 @@
  * Representation of an IP address.
  *
  */
-typedef u16_t uip_ip4addr_t[2];
-typedef u16_t uip_ip6addr_t[8];
 #if UIP_CONF_IPV6
+typedef union uip_ip6addr_t {
+  u8_t  u8[16];			/* Initializer, must come first!!! */
+  u16_t u16[8];
+} uip_ip6addr_t;
+
 typedef uip_ip6addr_t uip_ipaddr_t;
 #else /* UIP_CONF_IPV6 */
+typedef union uip_ip4addr_t {
+  u8_t  u8[4];			/* Initializer, must come first!!! */
+  u16_t u16[2];
+#if 0
+  u32_t u32;
+#endif
+} uip_ip4addr_t;
 typedef uip_ip4addr_t uip_ipaddr_t;
 #endif /* UIP_CONF_IPV6 */
 
@@ -101,7 +113,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_sethostaddr(addr) uip_ipaddr_copy(uip_hostaddr, (addr))
+#define uip_sethostaddr(addr) uip_ipaddr_copy(&uip_hostaddr, (addr))
 
 /**
  * Get the IP address of this host.
@@ -121,7 +133,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_gethostaddr(addr) uip_ipaddr_copy((addr), uip_hostaddr)
+#define uip_gethostaddr(addr) uip_ipaddr_copy((addr), &uip_hostaddr)
 
 /**
  * Set the default router's IP address.
@@ -133,7 +145,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_setdraddr(addr) uip_ipaddr_copy(uip_draddr, (addr))
+#define uip_setdraddr(addr) uip_ipaddr_copy(&uip_draddr, (addr))
 
 /**
  * Set the netmask.
@@ -145,7 +157,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_setnetmask(addr) uip_ipaddr_copy(uip_netmask, (addr))
+#define uip_setnetmask(addr) uip_ipaddr_copy(&uip_netmask, (addr))
 
 
 /**
@@ -156,7 +168,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_getdraddr(addr) uip_ipaddr_copy((addr), uip_draddr)
+#define uip_getdraddr(addr) uip_ipaddr_copy((addr), &uip_draddr)
 
 /**
  * Get the netmask.
@@ -166,7 +178,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_getnetmask(addr) uip_ipaddr_copy((addr), uip_netmask)
+#define uip_getnetmask(addr) uip_ipaddr_copy((addr), &uip_netmask)
 
 /** @} */
 
@@ -762,7 +774,7 @@ void uip_send(const void *data, int len);
  * \return The uip_udp_conn structure for the new connection, or NULL
  * if no connection could be allocated.
  */
-struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
+struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport,
 				 udp_appcall_fn *app);
 
 /**
@@ -812,6 +824,20 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  */
  
 /**
+ * Convert an IP address to four bytes separated by commas.
+ *
+ * Example:
+ \code
+ uip_ipaddr_t ipaddr;
+ printf("ipaddr=%d.%d.%d.%d\n", uip_ipaddr_to_quad(&ipaddr));
+ \endcode
+ *
+ * \param a A pointer to a uip_ipaddr_t.
+ * \hideinitializer
+ */
+#define uip_ipaddr_to_quad(a) (a)->u8[0],(a)->u8[1],(a)->u8[2],(a)->u8[3]
+
+/**
  * Construct an IP address from four bytes.
  *
  * This function constructs an IP address of the type that uIP handles
@@ -837,10 +863,12 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr(addr, addr0,addr1,addr2,addr3) do { \
-                     ((u16_t *)(addr))[0] = UIP_HTONS(((addr0) << 8) | (addr1)); \
-                     ((u16_t *)(addr))[1] = UIP_HTONS(((addr2) << 8) | (addr3)); \
-                  } while(0)
+#define uip_ipaddr(addr, addr0,addr1,addr2,addr3) do {  \
+    (addr)->u8[0] = addr0;                              \
+    (addr)->u8[1] = addr1;                              \
+    (addr)->u8[2] = addr2;                              \
+    (addr)->u8[3] = addr3;                              \
+  } while(0)
 
 /**
  * Construct an IPv6 address from eight 16-bit words.
@@ -850,15 +878,42 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  * \hideinitializer
  */
 #define uip_ip6addr(addr, addr0,addr1,addr2,addr3,addr4,addr5,addr6,addr7) do { \
-                     ((u16_t *)(addr))[0] = UIP_HTONS((addr0)); \
-                     ((u16_t *)(addr))[1] = UIP_HTONS((addr1)); \
-                     ((u16_t *)(addr))[2] = UIP_HTONS((addr2)); \
-                     ((u16_t *)(addr))[3] = UIP_HTONS((addr3)); \
-                     ((u16_t *)(addr))[4] = UIP_HTONS((addr4)); \
-                     ((u16_t *)(addr))[5] = UIP_HTONS((addr5)); \
-                     ((u16_t *)(addr))[6] = UIP_HTONS((addr6)); \
-                     ((u16_t *)(addr))[7] = UIP_HTONS((addr7)); \
-                  } while(0)
+    (addr)->u16[0] = UIP_HTONS(addr0);                                      \
+    (addr)->u16[1] = UIP_HTONS(addr1);                                      \
+    (addr)->u16[2] = UIP_HTONS(addr2);                                      \
+    (addr)->u16[3] = UIP_HTONS(addr3);                                      \
+    (addr)->u16[4] = UIP_HTONS(addr4);                                      \
+    (addr)->u16[5] = UIP_HTONS(addr5);                                      \
+    (addr)->u16[6] = UIP_HTONS(addr6);                                      \
+    (addr)->u16[7] = UIP_HTONS(addr7);                                      \
+  } while(0)
+
+/**
+ * Construct an IPv6 address from sixteen 8-bit words.
+ *
+ * This function constructs an IPv6 address.
+ *
+ * \hideinitializer
+ */
+#define uip_ip6addr_u8(addr, addr0,addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8,addr9,addr10,addr11,addr12,addr13,addr14,addr15) do { \
+    (addr)->u8[0] = addr0;                                       \
+    (addr)->u8[1] = addr1;                                       \
+    (addr)->u8[2] = addr2;                                       \
+    (addr)->u8[3] = addr3;                                       \
+    (addr)->u8[4] = addr4;                                       \
+    (addr)->u8[5] = addr5;                                       \
+    (addr)->u8[6] = addr6;                                       \
+    (addr)->u8[7] = addr7;                                       \
+    (addr)->u8[8] = addr8;                                       \
+    (addr)->u8[9] = addr9;                                       \
+    (addr)->u8[10] = addr10;                                     \
+    (addr)->u8[11] = addr11;                                     \
+    (addr)->u8[12] = addr12;                                     \
+    (addr)->u8[13] = addr13;                                     \
+    (addr)->u8[14] = addr14;                                     \
+    (addr)->u8[15] = addr15;                                     \
+  } while(0)
+
 
 /**
  * Copy an IP address from one place to another.
@@ -878,14 +933,9 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#if !UIP_CONF_IPV6
-#define uip_ipaddr_copy(dest, src) do { \
-                     ((u16_t *)dest)[0] = ((u16_t *)src)[0]; \
-                     ((u16_t *)dest)[1] = ((u16_t *)src)[1]; \
-                  } while(0)
-#else /* !UIP_CONF_IPV6 */
-#define uip_ipaddr_copy(dest, src) memcpy(dest, src, sizeof(uip_ip6addr_t))
-#endif /* !UIP_CONF_IPV6 */
+#ifndef uip_ipaddr_copy
+#define uip_ipaddr_copy(dest, src) (*(dest) = *(src))
+#endif
 
 /**
  * Compare two IP addresses
@@ -908,8 +958,8 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  * \hideinitializer
  */
 #if !UIP_CONF_IPV6
-#define uip_ipaddr_cmp(addr1, addr2) (((u16_t *)addr1)[0] == ((u16_t *)addr2)[0] && \
-				      ((u16_t *)addr1)[1] == ((u16_t *)addr2)[1])
+#define uip_ipaddr_cmp(addr1, addr2) ((addr1)->u16[0] == (addr2)->u16[0] && \
+				      (addr1)->u16[1] == (addr2)->u16[1])
 #else /* !UIP_CONF_IPV6 */
 #define uip_ipaddr_cmp(addr1, addr2) (memcmp(addr1, addr2, sizeof(uip_ip6addr_t)) == 0)
 #endif /* !UIP_CONF_IPV6 */
@@ -938,11 +988,15 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr_maskcmp(addr1, addr2, mask) \
-                          (((((u16_t *)addr1)[0] & ((u16_t *)mask)[0]) == \
-                            (((u16_t *)addr2)[0] & ((u16_t *)mask)[0])) && \
-                           ((((u16_t *)addr1)[1] & ((u16_t *)mask)[1]) == \
-                            (((u16_t *)addr2)[1] & ((u16_t *)mask)[1])))
+#if !UIP_CONF_IPV6
+#define uip_ipaddr_maskcmp(addr1, addr2, mask)          \
+  (((((u16_t *)addr1)[0] & ((u16_t *)mask)[0]) ==       \
+    (((u16_t *)addr2)[0] & ((u16_t *)mask)[0])) &&      \
+   ((((u16_t *)addr1)[1] & ((u16_t *)mask)[1]) ==       \
+    (((u16_t *)addr2)[1] & ((u16_t *)mask)[1])))
+#else
+#define uip_ipaddr_prefixcmp(addr1, addr2, length) (memcmp(addr1, addr2, length>>3) == 0)
+#endif
 
 
 /**
@@ -969,10 +1023,10 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr_mask(dest, src, mask) do { \
-                     ((u16_t *)dest)[0] = ((u16_t *)src)[0] & ((u16_t *)mask)[0]; \
-                     ((u16_t *)dest)[1] = ((u16_t *)src)[1] & ((u16_t *)mask)[1]; \
-                  } while(0)
+#define uip_ipaddr_mask(dest, src, mask) do {                           \
+    ((u16_t *)dest)[0] = ((u16_t *)src)[0] & ((u16_t *)mask)[0];        \
+    ((u16_t *)dest)[1] = ((u16_t *)src)[1] & ((u16_t *)mask)[1];        \
+  } while(0)
 
 /**
  * Pick the first octet of an IP address.
@@ -992,7 +1046,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr1(addr) (uip_htons(((u16_t *)(addr))[0]) >> 8)
+#define uip_ipaddr1(addr) ((addr)->u8[0])
 
 /**
  * Pick the second octet of an IP address.
@@ -1012,7 +1066,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr2(addr) (uip_htons(((u16_t *)(addr))[0]) & 0xff)
+#define uip_ipaddr2(addr) ((addr)->u8[1])
 
 /**
  * Pick the third octet of an IP address.
@@ -1032,7 +1086,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr3(addr) (uip_htons(((u16_t *)(addr))[1]) >> 8)
+#define uip_ipaddr3(addr) ((addr)->u8[2])
 
 /**
  * Pick the fourth octet of an IP address.
@@ -1052,7 +1106,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport,
  *
  * \hideinitializer
  */
-#define uip_ipaddr4(addr) (uip_htons(((u16_t *)(addr))[1]) & 0xff)
+#define uip_ipaddr4(addr) ((addr)->u8[3])
 
 /**
  * Convert 16-bit quantity from host byte order to network byte order.
@@ -1209,7 +1263,6 @@ extern struct uip_conn uip_conns[UIP_CONNS];
  * 4-byte array used for the 32-bit sequence number calculations.
  */
 extern u8_t uip_acc32[4];
-
 /** @} */
 
 
@@ -1419,8 +1472,7 @@ struct uip_tcpip_hdr {
     ttl,
     proto;
   u16_t ipchksum;
-  u16_t srcipaddr[2],
-    destipaddr[2];
+  uip_ipaddr_t srcipaddr, destipaddr;
 #endif /* UIP_CONF_IPV6 */
   
   /* TCP header. */
@@ -1456,8 +1508,7 @@ struct uip_icmpip_hdr {
     ttl,
     proto;
   u16_t ipchksum;
-  u16_t srcipaddr[2],
-    destipaddr[2];
+  uip_ipaddr_t srcipaddr, destipaddr;
 #endif /* UIP_CONF_IPV6 */
   
   /* ICMP header. */
@@ -1493,8 +1544,7 @@ struct uip_udpip_hdr {
     ttl,
     proto;
   u16_t ipchksum;
-  u16_t srcipaddr[2],
-    destipaddr[2];
+  uip_ipaddr_t srcipaddr, destipaddr;
 #endif /* UIP_CONF_IPV6 */
   
   /* UDP header. */
@@ -1551,6 +1601,8 @@ extern const uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 #else /* UIP_FIXEDADDR */
 extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 #endif /* UIP_FIXEDADDR */
+extern const uip_ipaddr_t uip_broadcast_addr;
+extern const uip_ipaddr_t uip_all_zeroes_addr;
 
 
 
