@@ -1,6 +1,7 @@
 #include "NanodeUIP.h"
 
 #include <inttypes.h>
+#include <avr/pgmspace.h>
 
 #include "uip.h"
 #include "uip_arp.h"
