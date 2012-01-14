@@ -78,6 +78,47 @@ typedef union uip_ip4addr_t {
 typedef uip_ip4addr_t uip_ipaddr_t;
 #endif /* UIP_CONF_IPV6 */
 
+
+/*---------------------------------------------------------------------------*/
+
+/** \brief 16 bit 802.15.4 address */
+typedef struct uip_802154_shortaddr {
+  u8_t addr[2];
+} uip_802154_shortaddr;
+/** \brief 64 bit 802.15.4 address */
+typedef struct uip_802154_longaddr {
+  u8_t addr[8];
+} uip_802154_longaddr;
+
+/** \brief 802.11 address */
+typedef struct uip_80211_addr {
+  u8_t addr[6];
+} uip_80211_addr;
+
+/** \brief 802.3 address */
+typedef struct uip_eth_addr {
+  u8_t addr[6];
+} uip_eth_addr;
+
+
+#if UIP_CONF_LL_802154
+/** \brief 802.15.4 address */
+typedef uip_802154_longaddr uip_lladdr_t;
+#define UIP_802154_SHORTADDR_LEN 2
+#define UIP_802154_LONGADDR_LEN  8
+#define UIP_LLADDR_LEN UIP_802154_LONGADDR_LEN
+#else /*UIP_CONF_LL_802154*/
+#if UIP_CONF_LL_80211
+/** \brief 802.11 address */
+typedef uip_80211_addr uip_lladdr_t;
+#define UIP_LLADDR_LEN 6
+#else /*UIP_CONF_LL_80211*/
+/** \brief Ethernet address */
+typedef uip_eth_addr uip_lladdr_t;
+#define UIP_LLADDR_LEN 6
+#endif /*UIP_CONF_LL_80211*/
+#endif /*UIP_CONF_LL_802154*/
+
 /*---------------------------------------------------------------------------*/
 /* First, the functions that should be called from the
  * system. Initialization, the periodic timer, and incoming packets are
@@ -309,8 +350,9 @@ void uip_setipid(u16_t id);
  *
  * \hideinitializer
  */
-#define uip_periodic(conn) do { uip_conn = &uip_conns[conn]; \
-                                uip_process(UIP_TIMER); } while (0)
+#if UIP_TCP
+#define uip_periodic(conn) do { uip_conn = &uip_conns[conn];    \
+    uip_process(UIP_TIMER); } while (0)
 
 /**
  *
@@ -331,8 +373,8 @@ void uip_setipid(u16_t id);
  *
  * \hideinitializer
  */
-#define uip_periodic_conn(conn) do { uip_conn = conn; \
-                                     uip_process(UIP_TIMER); } while (0)
+#define uip_periodic_conn(conn) do { uip_conn = conn;   \
+    uip_process(UIP_TIMER); } while (0)
 
 /**
  * Request that a particular connection should be polled.
@@ -345,9 +387,10 @@ void uip_setipid(u16_t id);
  *
  * \hideinitializer
  */
-#define uip_poll_conn(conn) do { uip_conn = conn; \
-                                 uip_process(UIP_POLL_REQUEST); } while (0)
+#define uip_poll_conn(conn) do { uip_conn = conn;       \
+    uip_process(UIP_POLL_REQUEST); } while (0)
 
+#endif /* UIP_TCP */
 
 #if UIP_UDP
 /**
@@ -382,7 +425,7 @@ void uip_setipid(u16_t id);
  * \hideinitializer
  */
 #define uip_udp_periodic(conn) do { uip_udp_conn = &uip_udp_conns[conn]; \
-                                uip_process(UIP_UDP_TIMER); } while (0)
+    uip_process(UIP_UDP_TIMER); } while(0)
 
 /**
  * Periodic processing for a UDP connection identified by a pointer to
@@ -398,11 +441,12 @@ void uip_setipid(u16_t id);
  *
  * \hideinitializer
  */
-#define uip_udp_periodic_conn(conn) do { uip_udp_conn = conn; \
-                                         uip_process(UIP_UDP_TIMER); } while (0)
-
-
+#define uip_udp_periodic_conn(conn) do { uip_udp_conn = conn;   \
+    uip_process(UIP_UDP_TIMER); } while(0)
 #endif /* UIP_UDP */
+
+/** \brief Abandon the reassembly of the current packet */
+void uip_reass_over(void);
 
 /**
  * The uIP packet buffer.
@@ -429,8 +473,16 @@ void uip_setipid(u16_t id);
     }
  }
  \endcode
- */
-extern u8_t uip_buf[UIP_BUFSIZE+2];
+*/
+
+typedef union {
+  uint32_t u32[(UIP_BUFSIZE + 3) / 4];
+  uint8_t u8[UIP_BUFSIZE];
+} uip_buf_t;
+
+extern uip_buf_t uip_aligned_buf;
+#define uip_buf (uip_aligned_buf.u8)
+
 
 /** @} */
 
@@ -618,9 +670,9 @@ void uip_send(const void *data, int len);
  *
  * \hideinitializer
  */
-#define uip_restart()         do { uip_flags |= UIP_NEWDATA; \
-                                   uip_conn->tcpstateflags &= ~UIP_STOPPED; \
-                              } while(0)
+#define uip_restart()         do { uip_flags |= UIP_NEWDATA;    \
+    uip_conn->tcpstateflags &= ~UIP_STOPPED;                    \
+  } while(0)
 
 
 /* uIP tests that can be made to determine in what state the current
@@ -1196,6 +1248,10 @@ extern void *uip_urgdata;
  */
 extern u16_t uip_len;
 
+/**
+ * The length of the extension headers
+ */
+extern u8_t uip_ext_len;
 /** @} */
 
 #if UIP_URGDATA > 0
@@ -1251,9 +1307,13 @@ struct uip_conn {
  * The uip_conn pointer can be used to access the current TCP
  * connection.
  */
+
 extern struct uip_conn *uip_conn;
+#if UIP_TCP
 /* The array containing all uIP connections. */
 extern struct uip_conn uip_conns[UIP_CONNS];
+#endif
+
 /**
  * \addtogroup uiparch
  * @{
@@ -1286,6 +1346,23 @@ struct uip_udp_conn {
 extern struct uip_udp_conn *uip_udp_conn;
 extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 #endif /* UIP_UDP */
+
+struct uip_fallback_interface {
+  void (*init)(void);
+  void (*output)(void);
+};
+
+/**
+ * The uIP TCP/IP statistics.
+ *
+ * This is the variable in which the uIP TCP/IP statistics are gathered.
+ */
+#if UIP_STATISTICS == 1
+extern struct uip_stats uip_stat;
+#define UIP_STAT(s) s
+#else
+#define UIP_STAT(s)
+#endif /* UIP_STATISTICS == 1 */
 
 /**
  * The structure holding the TCP/IP statistics that are gathered if
@@ -1324,6 +1401,7 @@ struct uip_stats {
     uip_stats_t chkerr;   /**< Number of ICMP packets with a bad
 			     checksum. */
   } icmp;                 /**< ICMP statistics. */
+#if UIP_TCP
   struct {
     uip_stats_t recv;     /**< Number of recived TCP segments. */
     uip_stats_t sent;     /**< Number of sent TCP segments. */
@@ -1339,6 +1417,7 @@ struct uip_stats {
     uip_stats_t synrst;   /**< Number of SYNs for closed ports,
 			     triggering a RST. */
   } tcp;                  /**< TCP statistics. */
+#endif
 #if UIP_UDP
   struct {
     uip_stats_t drop;     /**< Number of dropped UDP segments. */
@@ -1349,13 +1428,6 @@ struct uip_stats {
   } udp;                  /**< UDP statistics. */
 #endif /* UIP_UDP */
 };
-
-/**
- * The uIP TCP/IP statistics.
- *
- * This is the variable in which the uIP TCP/IP statistics are gathered.
- */
-extern struct uip_stats uip_stat;
 
 
 /*---------------------------------------------------------------------------*/
@@ -1554,8 +1626,6 @@ struct uip_udpip_hdr {
   u16_t udpchksum;
 };
 
-
-
 /**
  * The buffer size available for user data in the \ref uip_buf buffer.
  *
@@ -1571,29 +1641,38 @@ struct uip_udpip_hdr {
  * \hideinitializer
  */
 #define UIP_APPDATA_SIZE (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
-
+#define UIP_APPDATA_PTR (void *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN]
 
 #define UIP_PROTO_ICMP  1
 #define UIP_PROTO_TCP   6
 #define UIP_PROTO_UDP   17
 #define UIP_PROTO_ICMP6 58
 
+
 /* Header sizes. */
 #if UIP_CONF_IPV6
 #define UIP_IPH_LEN    40
+#define UIP_FRAGH_LEN  8
 #else /* UIP_CONF_IPV6 */
 #define UIP_IPH_LEN    20    /* Size of IP header */
 #endif /* UIP_CONF_IPV6 */
 
 #define UIP_UDPH_LEN    8    /* Size of UDP header */
 #define UIP_TCPH_LEN   20    /* Size of TCP header */
+#ifdef UIP_IPH_LEN
+#define UIP_ICMPH_LEN   4    /* Size of ICMP header */
+#endif
 #define UIP_IPUDPH_LEN (UIP_UDPH_LEN + UIP_IPH_LEN)    /* Size of IP +
-							  UDP
-							  header */
+                        * UDP
+							   * header */
 #define UIP_IPTCPH_LEN (UIP_TCPH_LEN + UIP_IPH_LEN)    /* Size of IP +
-							  TCP
-							  header */
+							   * TCP
+							   * header */
 #define UIP_TCPIP_HLEN UIP_IPTCPH_LEN
+#define UIP_IPICMPH_LEN (UIP_IPH_LEN + UIP_ICMPH_LEN) /* size of ICMP
+                                                         + IP header */
+#define UIP_LLIPH_LEN (UIP_LLH_LEN + UIP_IPH_LEN)    /* size of L2
+                                                        + IP header */
 
 
 #if UIP_FIXEDADDR
@@ -1604,14 +1683,12 @@ extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 extern const uip_ipaddr_t uip_broadcast_addr;
 extern const uip_ipaddr_t uip_all_zeroes_addr;
 
+#if UIP_FIXEDETHADDR
+extern const uip_lladdr_t uip_lladdr;
+#else
+extern uip_lladdr_t uip_lladdr;
+#endif
 
-
-/**
- * Representation of a 48-bit Ethernet address.
- */
-struct uip_eth_addr {
-  u8_t addr[6];
-};
 
 /**
  * Calculate the Internet checksum over a buffer.
