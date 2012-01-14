@@ -37,23 +37,12 @@
 
 #include <inttypes.h>
 
-/**
- * 8 bit datatype
- *
- * This typedef defines the 8-bit type used throughout uIP.
- *
- * \hideinitializer
- */
-typedef uint8_t u8_t;
-
-/**
- * 16 bit datatype
- *
- * This typedef defines the 16-bit type used throughout uIP.
- *
- * \hideinitializer
- */
-typedef uint16_t u16_t;
+/* From avrdef.h in Contiki */
+/* These names are deprecated, use C99 names. */
+typedef  uint8_t    u8_t;
+typedef uint16_t   u16_t;
+typedef uint32_t   u32_t;
+typedef  int32_t   s32_t;
 
 /**
  * Statistics datatype

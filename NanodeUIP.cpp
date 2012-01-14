@@ -15,9 +15,9 @@ void nanode_log(char *msg) {
 }
 
 void dhcpc_configured(const struct dhcpc_state *s) {
-  uip_sethostaddr(s->ipaddr);
-  uip_setnetmask(s->netmask);
-  uip_setdraddr(s->default_router);
+  uip_sethostaddr(&s->ipaddr);
+  uip_setnetmask(&s->netmask);
+  uip_setdraddr(&s->default_router);
   /* We don't call resolv_conf here, because that would drag in all
      the resolver code and state whether or not it's used by the
      sketch.  Instead we pass the address of the DNS server to the
@@ -25,16 +25,16 @@ void dhcpc_configured(const struct dhcpc_state *s) {
      to initialise the resolver if desired. */
   // resolv_conf(s->dnsaddr);
   if (uip.dhcp_status_callback!=NULL) {
-    uip.dhcp_status_callback(DHCP_STATUS_OK,s->dnsaddr);
+    uip.dhcp_status_callback(DHCP_STATUS_OK, &s->dnsaddr);
   }
 }
 
-void resolv_found(char *name, u16_t *ipaddr);
+void resolv_found(char *name, uip_ipaddr_t *ipaddr);
 
-void resolv_found(char *name, u16_t *ipaddr)
+void resolv_found(char *name, uip_ipaddr_t *ipaddr)
 {
   if (uip.resolv_status_callback!=NULL) {
-    uip.resolv_status_callback(name,ipaddr);
+    uip.resolv_status_callback(name, ipaddr);
   }
 }
 
@@ -69,56 +69,55 @@ boolean NanodeUIP::link_is_up(void) {
 
 void NanodeUIP::set_ip_addr(byte a, byte b, byte c, byte d) {
   uip_ipaddr_t ipaddr;
-  uip_ipaddr(ipaddr, a,b,c,d);
-  uip_sethostaddr(ipaddr);
+  uip_ipaddr(&ipaddr, a,b,c,d);
+  uip_sethostaddr(&ipaddr);
 }
 
 void NanodeUIP::set_netmask(byte a, byte b, byte c, byte d) {
   uip_ipaddr_t ipaddr;
-  uip_ipaddr(ipaddr, a,b,c,d);
-  uip_setnetmask(ipaddr);
+  uip_ipaddr(&ipaddr, a,b,c,d);
+  uip_setnetmask(&ipaddr);
 }
 
 void NanodeUIP::set_gateway_addr(byte a, byte b, byte c, byte d) {
   uip_ipaddr_t ipaddr;
-  uip_ipaddr(ipaddr, a,b,c,d);
-  uip_setdraddr(ipaddr);
+  uip_ipaddr(&ipaddr, a,b,c,d);
+  uip_setdraddr(&ipaddr);
 }
 
 void NanodeUIP::set_nameserver_addr(byte a, byte b, byte c, byte d) {
   uip_ipaddr_t ipaddr;
-  uip_ipaddr(ipaddr, a,b,c,d);
-  resolv_conf(ipaddr);
+  uip_ipaddr(&ipaddr, a,b,c,d);
+  resolv_conf(&ipaddr);
 }  
 
 // Requires a buffer of at least 18 bytes to format into
 void NanodeUIP::get_mac_str(char *buf) {
-  sprintf_P(buf,PSTR("%02X:%02X:%02X:%02X:%02X:%02X"),
+  sprintf_P(buf, PSTR("%02X:%02X:%02X:%02X:%02X:%02X"),
 	  uip_ethaddr.addr[0], uip_ethaddr.addr[1], uip_ethaddr.addr[2],
 	  uip_ethaddr.addr[3], uip_ethaddr.addr[4], uip_ethaddr.addr[5]);
 }
 
 // Requires a buffer of at least 16 bytes to format into
-void NanodeUIP::format_ipaddr(char *buf,uint16_t *addr) {
-  sprintf_P(buf,PSTR("%d.%d.%d.%d"),addr[0]&0xff,addr[0]>>8,
-	  addr[1]&0xff,addr[1]>>8);
+void NanodeUIP::format_ipaddr(char *buf, uip_ipaddr_t *addr) {
+  sprintf_P(buf, PSTR("%d.%d.%d.%d"), uip_ipaddr_to_quad(addr));
 }
 
 void NanodeUIP::get_ip_addr_str(char *buf) {
-  format_ipaddr(buf,uip_hostaddr);
+  format_ipaddr(buf, &uip_hostaddr);
 }
 
 void NanodeUIP::get_netmask_str(char *buf) {
-  format_ipaddr(buf,uip_netmask);
+  format_ipaddr(buf, &uip_netmask);
 }
 
 void NanodeUIP::get_gateway_str(char *buf) {
-  format_ipaddr(buf,uip_draddr);
+  format_ipaddr(buf, &uip_draddr);
 }
 
 boolean NanodeUIP::start_dhcp(dhcp_status_fn *callback) {
   dhcp_status_callback=callback;
-  return dhcpc_init(&uip_ethaddr,6);
+  return dhcpc_init(&uip_ethaddr, 6);
 }
 
 void NanodeUIP::init_resolv(resolv_result_fn *callback) {
@@ -130,7 +129,7 @@ void NanodeUIP::query_name(char *name) {
   resolv_query(name);
 }
 
-uint16_t *lookup_name(char *name) {
+uip_ipaddr_t *lookup_name(char *name) {
   return resolv_lookup(name);
 }
 

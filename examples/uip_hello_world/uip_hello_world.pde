@@ -60,14 +60,14 @@ static void hello_world_appcall(void)
   hello_world_connection(s);
 }
 
-static void resolv_found(char *name,uint16_t *addr) {
+static void resolv_found(char *name, uip_ipaddr_t *addr) {
   char buf[30]=": addr=";
   Serial.print(name);
   uip.format_ipaddr(buf+7,addr);
   Serial.println(buf);
 }
 
-void dhcp_status(int s,const uint16_t *dnsaddr) {
+void dhcp_status(int s,const uip_ipaddr_t *dnsaddr) {
   char buf[20]="IP:";
   if (s==DHCP_STATUS_OK) {
     resolv_conf(dnsaddr);
