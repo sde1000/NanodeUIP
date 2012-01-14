@@ -169,8 +169,8 @@ check_entries(void)
 {
   register struct dns_hdr *hdr;
   char *query, *nptr, *nameptr;
-  static u8_t i;
-  static u8_t n;
+  uint8_t i;
+  uint8_t n;
   register struct namemap *namemapptr;
   
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
@@ -243,18 +243,18 @@ newdata(void)
   
   hdr = (struct dns_hdr *)uip_appdata;
   /*  printf("ID %d\n", uip_htons(hdr->id));
-      printf("Query %d\n", hdr->flags1 & DNS_FLAG1_RESPONSE);
-      printf("Error %d\n", hdr->flags2 & DNS_FLAG2_ERR_MASK);
-      printf("Num questions %d, answers %d, authrr %d, extrarr %d\n",
-      uip_htons(hdr->numquestions),
-      uip_htons(hdr->numanswers),
-      uip_htons(hdr->numauthrr),
-      uip_htons(hdr->numextrarr));
+  printf("Query %d\n", hdr->flags1 & DNS_FLAG1_RESPONSE);
+  printf("Error %d\n", hdr->flags2 & DNS_FLAG2_ERR_MASK);
+  printf("Num questions %d, answers %d, authrr %d, extrarr %d\n",
+	 uip_htons(hdr->numquestions),
+	 uip_htons(hdr->numanswers),
+	 uip_htons(hdr->numauthrr),
+	 uip_htons(hdr->numextrarr));
   */
 
   /* The ID in the DNS header should be our entry into the name
      table. */
-  i = uip_htons(hdr->id);
+  i = (u8_t)uip_htons(hdr->id);
   namemapptr = &names[i];
   if(i < RESOLV_ENTRIES &&
      namemapptr->state == STATE_ASKING) {
@@ -272,13 +272,13 @@ newdata(void)
 
     /* We only care about the question(s) and the answers. The authrr
        and the extrarr are simply discarded. */
-    nquestions = uip_htons(hdr->numquestions);
-    nanswers = uip_htons(hdr->numanswers);
+    nquestions = (u8_t)uip_htons(hdr->numquestions);
+    nanswers = (u8_t)uip_htons(hdr->numanswers);
 
     /* Skip the name in the question. XXX: This should really be
        checked agains the name in the question, to be sure that they
        match. */
-    nameptr = parse_name((unsigned char *)uip_appdata + 12) + 4;
+    nameptr = parse_name((uint8_t *)uip_appdata + 12) + 4;
 
     while(nanswers > 0) {
       /* The first byte in the answer resource record determines if it
@@ -289,7 +289,7 @@ newdata(void)
 	/*	printf("Compressed anwser\n");*/
       } else {
 	/* Not compressed name. */
-	nameptr = parse_name((unsigned char *)nameptr);
+	nameptr = parse_name((uint8_t *)nameptr);
       }
 
       ans = (struct dns_answer *)nameptr;
@@ -347,7 +347,7 @@ resolv_appcall(void)
  */
 /*-----------------------------------------------------------------------------------*/
 void
-resolv_query(char *name)
+resolv_query(const char *name)
 {
   static u8_t i;
   static u8_t lseq, lseqi;
@@ -392,7 +392,7 @@ resolv_query(char *name)
  */
 /*-----------------------------------------------------------------------------------*/
 uip_ipaddr_t *
-resolv_lookup(char *name)
+resolv_lookup(const char *name)
 {
   static u8_t i;
   struct namemap *nameptr;
