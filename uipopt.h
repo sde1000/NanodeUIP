@@ -537,8 +537,8 @@ void httpd_appcall(void);
 #define UIP_APPCALL     httpd_appcall
 
 struct httpd_state {
-  u8_t state;
-  u16_t count;
+  uint8_t state;
+  uint16_t count;
   char *dataptr;
   char *script;
 };
