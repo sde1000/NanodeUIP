@@ -48,11 +48,15 @@ NanodeUIP::NanodeUIP(void) {
 }
 
 void NanodeUIP::init(const byte *macaddr) {
+  init(macaddr, NANODE_DEFAULT_CS);
+}
+
+void NanodeUIP::init(const byte *macaddr, int cs) {
   const struct uip_eth_addr *mac=(struct uip_eth_addr *)macaddr;
 
   uip_setethaddr((*mac));
   enc28j60SpiInit();
-  enc28j60InitWithCs(macaddr, 8);
+  enc28j60InitWithCs(macaddr, cs);
   enc28j60clkout(2); // change clkout from 6.25MHz to 12.5MHz
   delay(10);
   timer_set(&periodic_timer, CLOCK_SECOND / 2);
