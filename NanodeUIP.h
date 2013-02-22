@@ -7,6 +7,8 @@
   #include <WProgram.h> // Arduino 0022
 #endif
 
+#define NANODE_DEFAULT_CS 8
+
 #include "uip.h"
 #include "timer.h"
 
@@ -33,6 +35,7 @@ class NanodeUIP {
   NanodeUIP(void);
 
   void init(const byte *macaddr); // Call in setup()
+  void init(const byte *macaddr, int cs);
   void poll(void); // Must be called regularly in your sketch's loop()
 
   /* Link status functions */
